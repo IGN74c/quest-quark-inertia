@@ -1,73 +1,53 @@
-import AppLayout from '@/layouts/app-layout';
-import { type BoardData } from '@/types';
-import { Head, router, usePage } from '@inertiajs/react';
-import {
-    DndContext,
-    DragEndEvent,
-    DragOverEvent,
-    DragStartEvent,
-    PointerSensor,
-    KeyboardSensor,
-    useSensor,
-    useSensors,
-    closestCorners,
-    DragOverlay,
-    defaultDropAnimationSideEffects,
-} from '@dnd-kit/core';
-import {
-    SortableContext,
-    horizontalListSortingStrategy,
-    arrayMove,
-    sortableKeyboardCoordinates
-} from '@dnd-kit/sortable';
 import { useState, useEffect } from 'react';
+import { Head, router, usePage } from '@inertiajs/react';
+import { BoardUserPivot, SharedData, Task, User, type BoardData } from '@/types';
+import AppLayout from '@/layouts/app-layout';
 import { useBoardStore } from '@/stores/use-board-store';
+
 import { Users } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import {
+    DndContext, DragOverlay, DragStartEvent, DragOverEvent, DragEndEvent,
+    useSensor, useSensors, PointerSensor, KeyboardSensor, closestCorners, defaultDropAnimationSideEffects
+} from '@dnd-kit/core';
+import { SortableContext, horizontalListSortingStrategy, arrayMove, sortableKeyboardCoordinates } from '@dnd-kit/sortable';
 
 import KanbanColumn from '@/components/kanban/kanban-column';
 import KanbanTask from '@/components/kanban/kanban-task';
-import tasksRoute from '@/routes/tasks';
 import TaskCreateDialog from '@/components/kanban/task-create-dialog';
 import ColumnCreateDialog from '@/components/kanban/column-create-dialog';
 import BoardUsersDialog from '@/components/kanban/board-users-dialog';
-import { Button } from '@/components/ui/button';
+import tasksRoute from '@/routes/tasks';
 
-export default function Show({ board: initialBoard }: { board: BoardData }) {
-    const { auth } = usePage<any>().props;
+const getColumnDndId = (id: number) => `column-${id}`;
+const getTaskDndId = (id: number) => `task-${id}`;
+const parseDndId = (id: string) => ({
+    type: id.split('-')[0],
+    originalId: parseInt(id.split('-')[1])
+});
+
+type BoardUser = User & { pivot: BoardUserPivot };
+
+function useKanbanDnd(initialBoard: BoardData) {
     const { board, columns, setBoard, updateColumns } = useBoardStore();
-
-    useEffect(() => {
-        setBoard(initialBoard);
-    }, [initialBoard]);
-
-    const [activeTask, setActiveTask] = useState<any | null>(null);
-    const [isColumnDialogOpen, setIsColumnDialogOpen] = useState(false);
-    const [isTaskDialogOpen, setIsTaskDialogOpen] = useState(false);
-    const [isUsersDialogOpen, setIsUsersDialogOpen] = useState(false);
-    const [currentColumnId, setCurrentColumnId] = useState<number | null>(null);
+    const [activeTask, setActiveTask] = useState<Task | null>(null);
 
     const sensors = useSensors(
         useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
         useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
     );
 
-    const getColumnDndId = (id: number) => `column-${id}`;
-    const getTaskDndId = (id: number) => `task-${id}`;
-    const parseDndId = (id: string) => ({ type: id.split('-')[0], originalId: parseInt(id.split('-')[1]) });
-
-    const isAdmin = board?.users?.find(u => u.id === auth.user.id)?.pivot?.role === 'admin';
-
     const handleDragStart = (event: DragStartEvent) => {
         const { type, originalId } = parseDndId(event.active.id as string);
         if (type === 'task') {
             const task = columns.flatMap(c => c.tasks).find(t => t.id === originalId);
-            setActiveTask(task);
+            setActiveTask(task || null);
         }
     };
 
     const handleDragOver = (event: DragOverEvent) => {
         const { active, over } = event;
-        if (!over) return;
+        if (!over || !activeTask) return;
 
         const activeId = active.id as string;
         const overId = over.id as string;
@@ -79,7 +59,6 @@ export default function Show({ board: initialBoard }: { board: BoardData }) {
 
         if (!activeCol || !overCol || activeCol.id === overCol.id) return;
 
-        // Оптимистичное перемещение между колонками во время перетаскивания
         updateColumns(columns.map(col => {
             if (col.id === activeCol.id) {
                 return { ...col, tasks: col.tasks.filter(t => getTaskDndId(t.id) !== activeId) };
@@ -123,22 +102,81 @@ export default function Show({ board: initialBoard }: { board: BoardData }) {
                 task_ids: reorderedTasks.map(t => t.id)
             }, {
                 preserveScroll: true,
-                onSuccess: (page: any) => setBoard(page.props.board as BoardData),
+                onSuccess: (page) => setBoard(page.props.board as BoardData),
                 onError: () => setBoard(initialBoard)
             });
         }
         setActiveTask(null);
     };
 
+    return { sensors, activeTask, handleDragStart, handleDragOver, handleDragEnd };
+}
+
+
+const BoardModals = ({
+    board,
+    currentColumnId,
+    state: { isTaskOpen, isColumnOpen, isUsersOpen },
+    actions: { setTaskOpen, setColumnOpen, setUsersOpen }
+}: {
+    board: BoardData;
+    currentColumnId: number | null;
+    state: { isTaskOpen: boolean; isColumnOpen: boolean; isUsersOpen: boolean };
+    actions: { setTaskOpen: (v: boolean) => void; setColumnOpen: (v: boolean) => void; setUsersOpen: (v: boolean) => void };
+}) => {
+    const users = (board.users as BoardUser[]) || [];
+
+    return (
+        <>
+            <TaskCreateDialog
+                columnId={currentColumnId}
+                open={isTaskOpen}
+                onOpenChange={setTaskOpen}
+            />
+            <ColumnCreateDialog
+                boardId={board.id}
+                open={isColumnOpen}
+                onOpenChange={setColumnOpen}
+            />
+            <BoardUsersDialog
+                boardId={board.id}
+                users={users}
+                open={isUsersOpen}
+                onOpenChange={setUsersOpen}
+            />
+        </>
+    );
+};
+
+export default function Show({ board: initialBoard }: { board: BoardData }) {
+    const { auth } = usePage<SharedData>().props;
+    const { board, columns, setBoard } = useBoardStore();
+
+    const [isColumnDialogOpen, setIsColumnDialogOpen] = useState(false);
+    const [isTaskDialogOpen, setIsTaskDialogOpen] = useState(false);
+    const [isUsersDialogOpen, setIsUsersDialogOpen] = useState(false);
+    const [currentColumnId, setCurrentColumnId] = useState<number | null>(null);
+
+    useEffect(() => { setBoard(initialBoard); }, [initialBoard]);
+
+    const { sensors, activeTask, handleDragStart, handleDragOver, handleDragEnd } = useKanbanDnd(initialBoard);
+
     if (!board) return null;
+
+    const isAdmin = board.users?.find(u => u.id === auth.user.id)?.pivot?.role === 'admin';
+
+    const handleAddTask = (colId: number) => {
+        setCurrentColumnId(colId);
+        setIsTaskDialogOpen(true);
+    };
 
     return (
         <AppLayout breadcrumbs={[{ title: 'Dashboard', href: '/dashboard' }, { title: board.title, href: '#' }]}>
             <Head title={board.title} />
+
             <div className="flex h-full flex-col p-6 overflow-hidden">
                 <div className="flex items-center justify-between mb-6">
                     <h1 className="text-2xl font-bold tracking-tight">{board.title}</h1>
-
                     {isAdmin && (
                         <Button variant="outline" size="sm" onClick={() => setIsUsersDialogOpen(true)}>
                             <Users className="mr-2 h-4 w-4" /> Участники
@@ -162,7 +200,7 @@ export default function Show({ board: initialBoard }: { board: BoardData }) {
                                         column={column}
                                         tasks={column.tasks.filter(t => t.id !== activeTask?.id)}
                                         getTaskDndId={getTaskDndId}
-                                        onAddTask={() => { setCurrentColumnId(column.id); setIsTaskDialogOpen(true); }}
+                                        onAddTask={() => handleAddTask(column.id)}
                                     />
                                 ))}
                             </SortableContext>
@@ -182,27 +220,12 @@ export default function Show({ board: initialBoard }: { board: BoardData }) {
                 </div>
             </div>
 
-            {/* Модальные окна */}
-            <TaskCreateDialog
-                columnId={currentColumnId}
-                open={isTaskDialogOpen}
-                onOpenChange={setIsTaskDialogOpen}
+            <BoardModals
+                board={board}
+                currentColumnId={currentColumnId}
+                state={{ isTaskOpen: isTaskDialogOpen, isColumnOpen: isColumnDialogOpen, isUsersOpen: isUsersDialogOpen }}
+                actions={{ setTaskOpen: setIsTaskDialogOpen, setColumnOpen: setIsColumnDialogOpen, setUsersOpen: setIsUsersDialogOpen }}
             />
-
-            <ColumnCreateDialog
-                boardId={board.id}
-                open={isColumnDialogOpen}
-                onOpenChange={setIsColumnDialogOpen}
-            />
-
-            {isAdmin && (
-                <BoardUsersDialog
-                    boardId={board.id}
-                    users={board.users as any}
-                    open={isUsersDialogOpen}
-                    onOpenChange={setIsUsersDialogOpen}
-                />
-            )}
         </AppLayout>
     );
 }

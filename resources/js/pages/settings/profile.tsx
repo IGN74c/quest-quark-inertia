@@ -15,7 +15,7 @@ import { edit } from '@/routes/profile';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
-        title: 'Profile settings',
+        title: 'Настройки профиля',
         href: edit().url,
     },
 ];
@@ -31,13 +31,13 @@ export default function Profile({
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Profile settings" />
+            <Head title="Настройки профиля" />
 
             <SettingsLayout>
                 <div className="space-y-6">
                     <HeadingSmall
-                        title="Profile information"
-                        description="Update your name and email address"
+                        title="Информация профиля"
+                        description="Обновите свое имя и адрес электронной почты"
                     />
 
                     <Form
@@ -50,7 +50,7 @@ export default function Profile({
                         {({ processing, recentlySuccessful, errors }) => (
                             <>
                                 <div className="grid gap-2">
-                                    <Label htmlFor="name">Name</Label>
+                                    <Label htmlFor="name">Имя</Label>
 
                                     <Input
                                         id="name"
@@ -59,7 +59,7 @@ export default function Profile({
                                         name="name"
                                         required
                                         autoComplete="name"
-                                        placeholder="Full name"
+                                        placeholder="Полное имя"
                                     />
 
                                     <InputError
@@ -69,7 +69,7 @@ export default function Profile({
                                 </div>
 
                                 <div className="grid gap-2">
-                                    <Label htmlFor="email">Email address</Label>
+                                    <Label htmlFor="email">Email адрес</Label>
 
                                     <Input
                                         id="email"
@@ -79,7 +79,7 @@ export default function Profile({
                                         name="email"
                                         required
                                         autoComplete="username"
-                                        placeholder="Email address"
+                                        placeholder="Email адрес"
                                     />
 
                                     <InputError
@@ -93,7 +93,7 @@ export default function Profile({
                                         disabled={processing}
                                         data-test="update-profile-button"
                                     >
-                                        Save
+                                        Сохранить
                                     </Button>
 
                                     <Transition
@@ -104,7 +104,7 @@ export default function Profile({
                                         leaveTo="opacity-0"
                                     >
                                         <p className="text-sm text-neutral-600">
-                                            Saved
+                                            Сохранено
                                         </p>
                                     </Transition>
                                 </div>

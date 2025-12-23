@@ -8,19 +8,19 @@ import { Input } from '@/components/ui/input';
 import { useState } from 'react';
 import { useBoardStore } from '@/stores/use-board-store';
 import { router, usePage } from '@inertiajs/react';
+import { Column, SharedData, Task } from '@/types';
 
 interface KanbanColumnProps {
-    column: any;
-    tasks: any[];
+    column: Column;
+    tasks: Task[];
     getTaskDndId: (id: number) => string;
     onAddTask: () => void;
 }
 
 export default function KanbanColumn({ column, tasks, getTaskDndId, onAddTask }: KanbanColumnProps) {
-    const { auth } = usePage<any>().props;
+    const { auth } = usePage<SharedData>().props;
     const { board, updateColumnTitle } = useBoardStore();
-    
-    // Проверка прав админа
+
     const isAdmin = board?.users?.find(u => u.id === auth.user.id)?.pivot?.role === 'admin';
 
     const [isEditing, setIsEditing] = useState(false);
@@ -65,12 +65,12 @@ export default function KanbanColumn({ column, tasks, getTaskDndId, onAddTask }:
                             className="h-5 w-5 text-muted-foreground cursor-grab active:cursor-grabbing"
                             {...listeners}
                         />
-                        
+
                         {isEditing && isAdmin ? (
                             <div className="flex flex-1 items-center gap-1">
-                                <Input 
-                                    className="h-7 py-0 px-2 text-sm" 
-                                    value={title} 
+                                <Input
+                                    className="h-7 py-0 px-2 text-sm"
+                                    value={title}
                                     onChange={(e) => setTitle(e.target.value)}
                                     autoFocus
                                     onBlur={handleSave}
@@ -81,18 +81,18 @@ export default function KanbanColumn({ column, tasks, getTaskDndId, onAddTask }:
                                 </Button>
                             </div>
                         ) : (
-                            <span 
+                            <span
                                 className={`flex-1 truncate ${isAdmin ? 'cursor-pointer hover:text-foreground transition-colors' : ''}`}
                                 onClick={() => isAdmin && setIsEditing(true)}
                             >
                                 {column.title}
                             </span>
                         )}
-                        
+
                         <span className="bg-muted px-2 py-0.5 rounded-full text-[10px]">{tasks.length}</span>
                     </CardTitle>
                 </CardHeader>
-                
+
                 <CardContent className="flex flex-col gap-2 p-2 overflow-y-auto flex-1">
                     <SortableContext items={tasks.map(t => getTaskDndId(t.id))} strategy={verticalListSortingStrategy}>
                         {tasks.map((task) => (

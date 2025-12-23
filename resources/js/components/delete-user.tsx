@@ -27,9 +27,9 @@ export default function DeleteUser() {
             />
             <div className="space-y-4 rounded-lg border border-red-100 bg-red-50 p-4 dark:border-red-200/10 dark:bg-red-700/10">
                 <div className="relative space-y-0.5 text-red-600 dark:text-red-100">
-                    <p className="font-medium">Warning</p>
+                    <p className="font-medium">Внимание</p>
                     <p className="text-sm">
-                        Please proceed with caution, this cannot be undone.
+                        Пожалуйста, действуйте осторожно, это непоправимо.
                     </p>
                 </div>
 
@@ -39,18 +39,18 @@ export default function DeleteUser() {
                             variant="destructive"
                             data-test="delete-user-button"
                         >
-                            Delete account
+                            Удалить аккаунт
                         </Button>
                     </DialogTrigger>
                     <DialogContent>
                         <DialogTitle>
-                            Are you sure you want to delete your account?
+                            Вы уверены, что хотите удалить свой аккаунт?
                         </DialogTitle>
                         <DialogDescription>
-                            Once your account is deleted, all of its resources
-                            and data will also be permanently deleted. Please
-                            enter your password to confirm you would like to
-                            permanently delete your account.
+                            Как только ваша учетная запись будет удалена, все ее ресурсы
+                            и данные также будут удалены безвозвратно. Пожалуйста
+                            введите свой пароль, чтобы подтвердить, что вы хотите
+                            навсегда удалить свою учетную запись.
                         </DialogDescription>
 
                         <Form
@@ -69,7 +69,7 @@ export default function DeleteUser() {
                                             htmlFor="password"
                                             className="sr-only"
                                         >
-                                            Password
+                                            Пароль
                                         </Label>
 
                                         <Input
@@ -77,7 +77,7 @@ export default function DeleteUser() {
                                             type="password"
                                             name="password"
                                             ref={passwordInput}
-                                            placeholder="Password"
+                                            placeholder="Пароль"
                                             autoComplete="current-password"
                                         />
 
@@ -92,7 +92,7 @@ export default function DeleteUser() {
                                                     resetAndClearErrors()
                                                 }
                                             >
-                                                Cancel
+                                                Отмена
                                             </Button>
                                         </DialogClose>
 
@@ -105,7 +105,7 @@ export default function DeleteUser() {
                                                 type="submit"
                                                 data-test="confirm-delete-user-button"
                                             >
-                                                Delete account
+                                                Удалить аккаунт
                                             </button>
                                         </Button>
                                     </DialogFooter>

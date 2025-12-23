@@ -13,7 +13,7 @@ import {
 import { dashboard } from '@/routes';
 import { SharedData, type NavItem } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
-import { BookOpen, Folder, Layout, LayoutGrid } from 'lucide-react';
+import { Layout, LayoutGrid } from 'lucide-react';
 import AppLogo from './app-logo';
 import boards from '@/routes/boards';
 

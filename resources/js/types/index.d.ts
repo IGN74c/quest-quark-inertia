@@ -1,21 +1,65 @@
 import { InertiaLinkProps } from '@inertiajs/react';
 import { LucideIcon } from 'lucide-react';
 
-interface ColumnWithTasks {
+export interface User {
     id: number;
-    title: string;
-    position: number;
-    tasks: any[];
-}
-
-interface BoardData extends Board {
-    columns: ColumnWithTasks[];
-    users?: User[];
+    name: string;
+    email: string;
+    avatar?: string;
+    email_verified_at?: string;
+    created_at: string;
+    updated_at: string;
+    pivot?: BoardUserPivot;
+    [key: string]: unknown;
 }
 
 export interface Board {
     id: number;
     title: string;
+    user_id: number;
+    created_at: string;
+    updated_at: string;
+}
+
+export interface Column {
+    id: number;
+    board_id: number;
+    title: string;
+    position: number;
+    created_at: string;
+    updated_at: string;
+}
+
+export interface Task {
+    id: number;
+    column_id: number;
+    creator_id: number;
+    assignee_id: number | null;
+    title: string;
+    description: string;
+    position: number;
+    created_at: string;
+    updated_at: string;
+    creator?: User;
+    assignee?: User | null;
+}
+
+export interface BoardUserPivot {
+    id: number;
+    board_id: number;
+    user_id: number;
+    role: 'admin' | 'editor' | 'viewer';
+    created_at: string;
+    updated_at: string;
+}
+
+export interface ColumnWithTasks extends Column {
+    tasks: Task[];
+}
+
+export interface BoardData extends Board {
+    columns: ColumnWithTasks[];
+    users?: User[];
 }
 
 export interface Auth {
@@ -42,25 +86,11 @@ export interface NavItem {
 
 export interface SharedData {
     name: string;
-    quote: { message: string; author: string };
+    quote: { 
+        message: string; 
+        author: string 
+    };
     auth: Auth;
     sidebarOpen: boolean;
-    [key: string]: unknown;
-}
-
-export interface BoardUserPivot {
-    role: 'admin' | 'editor' | 'viewer';
-    board_id: number;
-    user_id: number;
-}
-
-export interface User {
-    id: number;
-    name: string;
-    email: string;
-    avatar?: string;
-    created_at: string;
-    updated_at: string;
-    pivot?: BoardUserPivot;
     [key: string]: unknown;
 }
