@@ -195,17 +195,24 @@ export interface User {
 ## Маршруты
 ```php
 Route::middleware(['auth'])->group(function () {
-    Route::get('dashboard', function () {
-        return Inertia::render('dashboard');
-    })->name('dashboard');
+    Route::get('dashboard', [BoardController::class, 'index'])->name('dashboard');
+
     // --- Доски (Boards) ---
     Route::get('/boards/{board}', [BoardController::class, 'show'])->name('boards.show');
     Route::post('/boards', [BoardController::class, 'store'])->name('boards.store');
     Route::delete('/boards/{board}', [BoardController::class, 'destroy'])->name('boards.destroy');
+    Route::post('/boards/{board}/invite', [BoardController::class, 'invite'])->name('boards.invite');
+
+    // --- Управление участниками ---
+    Route::patch('/boards/{board}/users/{user}', [BoardController::class, 'updateUserRole'])->name('boards.users.update');
+    Route::delete('/boards/{board}/users/{user}', [BoardController::class, 'removeUser'])->name('boards.users.remove');
+
     // --- Колонки (Columns) ---
     Route::post('/boards/{board}/columns', [ColumnController::class, 'store'])->name('columns.store');
     Route::delete('/columns/{column}', [ColumnController::class, 'destroy'])->name('columns.destroy');
+    Route::patch('/columns/{column}', [ColumnController::class, 'update'])->name('columns.update');
     Route::patch('/columns/{column}/move', [TaskMovementController::class, 'moveColumn'])->name('columns.move');
+
     // --- Задачи (Tasks) ---
     Route::post('/columns/{column}/tasks', [TaskController::class, 'store'])->name('tasks.store');
     Route::patch('/tasks/{task}', [TaskController::class, 'update'])->name('tasks.update');
