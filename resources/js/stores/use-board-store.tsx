@@ -7,6 +7,7 @@ interface BoardState {
     setBoard: (board: BoardData) => void;
     updateColumns: (columns: ColumnWithTasks[]) => void;
     updateColumnTitle: (columnId: number, title: string) => void;
+    updateColumnOrder: (columnIds: number[]) => void;
 }
 
 export const useBoardStore = create<BoardState>((set) => ({
@@ -24,6 +25,11 @@ export const useBoardStore = create<BoardState>((set) => ({
         columns: state.columns.map(col =>
             col.id === columnId ? { ...col, title } : col
         )
+    })),
+    updateColumnOrder: (columnIds: number[]) => set((state) => ({
+        columns: columnIds.map(id =>
+            state.columns.find(c => c.id === id)!
+        ).map((col, index) => ({ ...col, position: index }))
     })),
 }));
 

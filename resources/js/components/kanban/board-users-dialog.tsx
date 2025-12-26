@@ -18,13 +18,13 @@ import { User } from '@/types';
 
 interface BoardUsersDialogProps {
     boardId: number;
-    users: (User & { pivot: { role: string } })[];
+    users: (User)[];
     open: boolean;
     onOpenChange: (open: boolean) => void;
 }
 
 export default function BoardUsersDialog({ boardId, users, open, onOpenChange }: BoardUsersDialogProps) {
-    
+
     const updateRole = (userId: number, role: string) => {
         router.patch(`/boards/${boardId}/users/${userId}`, { role }, {
             preserveScroll: true,
@@ -57,13 +57,13 @@ export default function BoardUsersDialog({ boardId, users, open, onOpenChange }:
                                     <p className="text-xs text-muted-foreground">{user.email}</p>
                                 </div>
                             </div>
-                            
+
                             <div className="flex items-center gap-2">
                                 {/* Админ не может изменить роль самому себе или удалить себя здесь */}
-                                {user.pivot.role !== 'admin' ? (
+                                {user.pivot?.role !== 'admin' ? (
                                     <>
                                         <Select
-                                            defaultValue={user.pivot.role}
+                                            defaultValue={user.pivot?.role}
                                             onValueChange={(value) => updateRole(user.id, value)}
                                         >
                                             <SelectTrigger className="h-8 w-[110px] text-xs">
@@ -74,10 +74,10 @@ export default function BoardUsersDialog({ boardId, users, open, onOpenChange }:
                                                 <SelectItem value="viewer">Читатель</SelectItem>
                                             </SelectContent>
                                         </Select>
-                                        <Button 
-                                            variant="ghost" 
-                                            size="icon" 
-                                            className="h-8 w-8 text-destructive" 
+                                        <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            className="h-8 w-8 text-destructive"
                                             onClick={() => removeUser(user.id)}
                                         >
                                             <Trash2 className="h-4 w-4" />

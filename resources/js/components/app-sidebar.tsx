@@ -52,10 +52,14 @@ export function AppSidebar() {
             </SidebarHeader>
 
             <SidebarContent>
-                <NavMain items={mainNavItems} />
+                <NavMain
+                    title='Платформа'
+                    items={mainNavItems}
+                />
 
                 {boardNavItems.length > 0 && (
                     <NavMain
+                        title='Доски'
                         items={boardNavItems}
                     />
                 )}
