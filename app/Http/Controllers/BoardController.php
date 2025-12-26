@@ -9,11 +9,25 @@ use Inertia\Response;
 
 class BoardController extends Controller
 {
-
     public function index(Request $request)
     {
+        $user = $request->user();
+
+        $boards = $user->boards()
+            ->with(['users', 'columns.tasks'])
+            ->get();
+
+        $totalTasks = $boards->sum(fn($board) => $board->columns->sum(fn($col) => $col->tasks->count()));
+
+        $totalMembers = $boards->pluck('users')->flatten()->unique('id')->count();
+
         return Inertia::render('dashboard', [
-            'boards' => $request->user()->boards()->with('users')->get()
+            'boards' => $boards,
+            'stats' => [
+                'total_boards' => $boards->count(),
+                'total_tasks' => $totalTasks,
+                'total_members' => $totalMembers,
+            ]
         ]);
     }
 
@@ -49,6 +63,28 @@ class BoardController extends Controller
         $board->users()->attach($request->user()->id, ['role' => 'admin']);
 
         return redirect()->route('boards.show', $board->id);
+    }
+
+    public function update(Request $request, Board $board)
+    {
+        $this->authorize('update', $board);
+
+        $validated = $request->validate([
+            'title' => 'required|string|max:255',
+        ]);
+
+        $board->update($validated);
+
+        return back();
+    }
+
+    public function destroy(Board $board)
+    {
+        $this->authorize('delete', $board);
+
+        $board->delete();
+
+        return redirect()->route('dashboard');
     }
 
     public function invite(Request $request, Board $board)

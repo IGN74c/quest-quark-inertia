@@ -20,6 +20,7 @@ Route::middleware(['auth'])->group(function () {
     // --- Доски (Boards) ---
     Route::get('/boards/{board}', [BoardController::class, 'show'])->name('boards.show');
     Route::post('/boards', [BoardController::class, 'store'])->name('boards.store');
+    Route::patch('/boards/{board}', [BoardController::class, 'update'])->name('boards.update');
     Route::delete('/boards/{board}', [BoardController::class, 'destroy'])->name('boards.destroy');
     Route::post('/boards/{board}/invite', [BoardController::class, 'invite'])->name('boards.invite');
 

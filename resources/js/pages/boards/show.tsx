@@ -1,16 +1,14 @@
 import { useState, useEffect } from 'react';
 import { Head, router, usePage } from '@inertiajs/react';
 import {
-    BoardUserPivot,
     SharedData,
     Task,
-    User,
     type BoardData,
 } from '@/types';
 import AppLayout from '@/layouts/app-layout';
 import { useBoardStore } from '@/stores/use-board-store';
 
-import { Users } from 'lucide-react';
+import { MoreVertical, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
     DndContext,
@@ -31,8 +29,17 @@ import KanbanColumn from '@/components/kanban/kanban-column';
 import KanbanTask from '@/components/kanban/kanban-task';
 import TaskCreateDialog from '@/components/kanban/task-create-dialog';
 import ColumnCreateDialog from '@/components/kanban/column-create-dialog';
-import BoardUsersDialog from '@/components/kanban/board-users-dialog';
+import BoardUsersDialog from '@/components/board/board-users-dialog';
 import tasksRoute from '@/routes/tasks';
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+    DropdownMenuSeparator,
+} from '@/components/ui/dropdown-menu';
+import BoardRenameDialog from '@/components/board/board-rename-dialog';
+import BoardDeleteDialog from '@/components/board/board-delete-dialog';
 
 const getColumnDndId = (id: number) => `column-${id}`;
 const getTaskDndId = (id: number) => `task-${id}`;
@@ -42,11 +49,8 @@ const parseDndId = (id: string) => ({
     originalId: parseInt(id.split('-')[1]),
 });
 
-type BoardUser = User & { pivot: BoardUserPivot };
-
-
 function useKanbanDnd(initialBoard: BoardData) {
-    const { board, columns, setBoard, updateColumns, updateColumnOrder } = useBoardStore();
+    const { columns, setBoard, updateColumns, updateColumnOrder } = useBoardStore();
     const [activeTask, setActiveTask] = useState<Task | null>(null);
     const [activeColumnId, setActiveColumnId] = useState<number | null>(null);
 
@@ -168,6 +172,9 @@ export default function Show({ board: initialBoard }: { board: BoardData }) {
     const { auth } = usePage<SharedData>().props;
     const { board, columns, setBoard } = useBoardStore();
 
+    const [isRenameOpen, setIsRenameOpen] = useState(false);
+    const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+
     const [isColumnDialogOpen, setIsColumnDialogOpen] = useState(false);
     const [isTaskDialogOpen, setIsTaskDialogOpen] = useState(false);
     const [isUsersDialogOpen, setIsUsersDialogOpen] = useState(false);
@@ -201,16 +208,42 @@ export default function Show({ board: initialBoard }: { board: BoardData }) {
 
             <div className="flex h-full flex-col p-6 overflow-hidden">
                 <div className="flex items-center justify-between mb-6">
-                    <h1 className="text-2xl font-bold tracking-tight">{board.title}</h1>
-                    {isAdmin && (
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => setIsUsersDialogOpen(true)}
-                        >
-                            <Users className="mr-2 h-4 w-4" /> Участники
-                        </Button>
-                    )}
+                    <h1
+                        className="text-2xl font-bold tracking-tight cursor-pointer hover:text-primary transition-colors"
+                        onClick={() => isAdmin && setIsRenameOpen(true)}
+                    >
+                        {board.title}
+                    </h1>
+
+                    <div className="flex items-center gap-2">
+                        {isAdmin && (
+                            <>
+                                <Button variant="outline" size="sm" onClick={() => setIsUsersDialogOpen(true)}>
+                                    <Users className="mr-2 h-4 w-4" /> Участники
+                                </Button>
+
+                                <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                        <Button variant="ghost" size="sm">
+                                            <MoreVertical className="h-4 w-4" />
+                                        </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end">
+                                        <DropdownMenuItem onClick={() => setIsRenameOpen(true)}>
+                                            Переименовать
+                                        </DropdownMenuItem>
+                                        <DropdownMenuSeparator />
+                                        <DropdownMenuItem
+                                            className="text-destructive focus:text-destructive"
+                                            onClick={() => setIsDeleteOpen(true)}
+                                        >
+                                            Удалить доску
+                                        </DropdownMenuItem>
+                                    </DropdownMenuContent>
+                                </DropdownMenu>
+                            </>
+                        )}
+                    </div>
                 </div>
 
                 <div className="flex-1 overflow-x-auto pb-4 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
@@ -259,8 +292,6 @@ export default function Show({ board: initialBoard }: { board: BoardData }) {
                 </div>
             </div>
 
-        
-
             <TaskCreateDialog
                 columnId={currentColumnId}
                 open={isTaskDialogOpen}
@@ -276,6 +307,16 @@ export default function Show({ board: initialBoard }: { board: BoardData }) {
                 users={board.users || []}
                 open={isUsersDialogOpen}
                 onOpenChange={setIsUsersDialogOpen}
+            />
+            <BoardRenameDialog
+                board={board}
+                open={isRenameOpen}
+                onOpenChange={setIsRenameOpen}
+            />
+            <BoardDeleteDialog
+                board={board}
+                open={isDeleteOpen}
+                onOpenChange={setIsDeleteOpen}
             />
         </AppLayout>
     );

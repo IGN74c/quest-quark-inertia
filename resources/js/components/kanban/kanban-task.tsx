@@ -41,7 +41,7 @@ export default function KanbanTask({ task }: { task: Task }) {
             >
                 <div className="flex items-center justify-between">
                     <span className="text-[10px] font-mono text-muted-foreground uppercase tracking-wider">
-                        #{task.id}
+
                     </span>
                     <button
                         {...listeners}
@@ -65,16 +65,16 @@ export default function KanbanTask({ task }: { task: Task }) {
                     </div>
 
                     {task.assignee && (
-                        <div 
-                            className="flex items-center gap-1.5 pl-2 rounded-full bg-muted/50 pr-2 py-0.5 max-w-[120px]" 
+                        <div
+                            className="flex items-center gap-1.5 pl-2 rounded-full bg-muted/50 pr-2 py-0.5 max-w-[120px]"
                             title={task.assignee.name}
                         >
                             <div className="relative flex h-5 w-5 shrink-0 overflow-hidden rounded-full border border-background">
                                 {task.assignee.avatar ? (
-                                    <img 
-                                        src={task.assignee.avatar} 
-                                        alt={task.assignee.name} 
-                                        className="h-full w-full object-cover" 
+                                    <img
+                                        src={task.assignee.avatar}
+                                        alt={task.assignee.name}
+                                        className="h-full w-full object-cover"
                                     />
                                 ) : (
                                     <div className="flex h-full w-full items-center justify-center bg-primary text-[9px] font-bold text-primary-foreground uppercase">

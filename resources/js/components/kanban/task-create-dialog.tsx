@@ -40,7 +40,6 @@ export default function TaskCreateDialog({ columnId, open, onOpenChange }: TaskC
         if (!columnId) return;
 
         post(`/columns/${columnId}/tasks`, {
-            // Превращаем 'none' в null для бэкенда
             ...data,
             assignee_id: data.assignee_id === 'none' ? null : data.assignee_id,
             onSuccess: () => {
