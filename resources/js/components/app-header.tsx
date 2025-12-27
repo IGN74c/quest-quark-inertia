@@ -29,12 +29,13 @@ import {
 import { UserMenuContent } from '@/components/user-menu-content';
 import { useInitials } from '@/hooks/use-initials';
 import { cn, isSameUrl, resolveUrl } from '@/lib/utils';
-import { dashboard } from '@/routes';
+import { dashboard, login, register } from '@/routes';
 import { type BreadcrumbItem, type NavItem, type SharedData } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
-import { BookOpen, Folder, LayoutGrid, Menu, Search } from 'lucide-react';
+import { LayoutGrid, Menu } from 'lucide-react';
 import AppLogo from './app-logo';
 import AppLogoIcon from './app-logo-icon';
+import { ThemeToggleButton } from '@/components/theme-toggle-button';
 
 const mainNavItems: NavItem[] = [
     {
@@ -174,14 +175,8 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
                     </div>
 
                     <div className="ml-auto flex items-center space-x-2">
+                        <ThemeToggleButton />
                         <div className="relative flex items-center space-x-1">
-                            <Button
-                                variant="ghost"
-                                size="icon"
-                                className="group h-9 w-9 cursor-pointer"
-                            >
-                                <Search className="!size-5 opacity-80 group-hover:opacity-100" />
-                            </Button>
                             <div className="hidden lg:flex">
                                 {rightNavItems.map((item) => (
                                     <TooltipProvider
@@ -215,27 +210,38 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
                                 ))}
                             </div>
                         </div>
-                        <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                                <Button
-                                    variant="ghost"
-                                    className="size-10 rounded-full p-1"
-                                >
-                                    <Avatar className="size-8 overflow-hidden rounded-full">
-                                        <AvatarImage
-                                            src={auth.user.avatar}
-                                            alt={auth.user.name}
-                                        />
-                                        <AvatarFallback className="rounded-lg bg-neutral-200 text-black dark:bg-neutral-700 dark:text-white">
-                                            {getInitials(auth.user.name)}
-                                        </AvatarFallback>
-                                    </Avatar>
+                        {auth.user ? (
+                            <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <Button
+                                        variant="ghost"
+                                        className="size-10 rounded-full p-1"
+                                    >
+                                        <Avatar className="size-8 overflow-hidden rounded-full">
+                                            <AvatarImage
+                                                src={auth.user.avatar}
+                                                alt={auth.user.name}
+                                            />
+                                            <AvatarFallback className="rounded-lg bg-neutral-200 text-black dark:bg-neutral-700 dark:text-white">
+                                                {getInitials(auth.user.name)}
+                                            </AvatarFallback>
+                                        </Avatar>
+                                    </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent className="w-56" align="end">
+                                    <UserMenuContent user={auth.user} />
+                                </DropdownMenuContent>
+                            </DropdownMenu>
+                        ) : (
+                            <div className="flex items-center space-x-2">
+                                <Button variant="ghost" asChild size="sm">
+                                    <Link href={login.url()}>Вход</Link>
                                 </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent className="w-56" align="end">
-                                <UserMenuContent user={auth.user} />
-                            </DropdownMenuContent>
-                        </DropdownMenu>
+                                <Button asChild size="sm">
+                                    <Link href={register.url()}>Регистрация</Link>
+                                </Button>
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>
