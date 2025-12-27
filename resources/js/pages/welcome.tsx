@@ -75,7 +75,7 @@ export default function Welcome({ canRegister = true }: { canRegister?: boolean 
             </section>
 
             {/* Как это работает */}
-            <section className="py-24 px-6">
+            <section className="px-6 mb-56">
                 <div className="max-w-5xl mx-auto">
                     <h2 className="text-3xl md:text-4xl font-bold text-center mb-16">
                         Всё просто. Три шага — и вы в потоке.
@@ -103,7 +103,7 @@ export default function Welcome({ canRegister = true }: { canRegister?: boolean 
                 </div>
             </section>
 
-            <section className="py-12 px-6 bg-muted/30 rounded-xl">
+            <section className="py-12 mb-48 px-6 bg-muted/30 rounded-xl">
                 <div className="max-w-7xl mx-auto">
                     <div className="text-center mb-16">
                         <h2 className="text-3xl md:text-4xl font-bold mb-4">
@@ -170,7 +170,7 @@ export default function Welcome({ canRegister = true }: { canRegister?: boolean 
             </section>
 
             {/* Преимущества */}
-            <section className="py-24 px-6">
+            <section className="py-24 mb-48 px-6">
                 <div className="max-w-5xl mx-auto">
                     <h2 className="text-3xl md:text-4xl font-bold text-center mb-16">
                         Почему Quest Quark
@@ -199,7 +199,7 @@ export default function Welcome({ canRegister = true }: { canRegister?: boolean 
             </section>
 
             {/* Отзывы */}
-            <section className="py-24 px-6 bg-muted/30 rounded-xl">
+            <section className="py-24 mb-12 px-6 bg-muted/30 rounded-xl">
                 <div className="max-w-4xl mx-auto text-center">
                     <h2 className="text-3xl md:text-4xl font-bold mb-16">
                         Что говорят пользователи
