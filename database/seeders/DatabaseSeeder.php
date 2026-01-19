@@ -18,7 +18,7 @@ class DatabaseSeeder extends Seeder
         $testUser = User::firstOrCreate(
             ['email' => 'test@example.com'],
             [
-                'name' => 'IGN test',
+                'name' => 'Test',
                 'password' => Hash::make('test'),
             ]
         );
@@ -36,7 +36,6 @@ class DatabaseSeeder extends Seeder
             'user_id' => $user->id,
         ]);
 
-        // Привязываем пользователя к доске через pivot таблицу
         $board->users()->attach($user->id, ['role' => 'admin']);
         $board->users()->attach($testUser->id, ['role' => 'viewer']);
 
