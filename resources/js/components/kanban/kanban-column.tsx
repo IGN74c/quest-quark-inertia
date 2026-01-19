@@ -8,7 +8,6 @@ import {
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog';
-import { Trash2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { useBoardStore } from '@/stores/use-board-store';
 import { Column, SharedData, Task } from '@/types';
@@ -19,7 +18,7 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { router, usePage } from '@inertiajs/react';
-import { Check, GripVertical } from 'lucide-react';
+import { Check, GripVertical, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import KanbanTask from './kanban-task';
 
@@ -38,7 +37,6 @@ export default function KanbanColumn({
 }: KanbanColumnProps) {
     const { auth } = usePage<SharedData>().props;
     const { board, updateColumnTitle } = useBoardStore();
-
 
     const isAdmin =
         board?.users?.find((u) => u.id === auth.user.id)?.pivot?.role ===
@@ -175,14 +173,17 @@ export default function KanbanColumn({
                 </div>
             </Card>
 
-
             <Dialog open={isDeleteOpen} onOpenChange={setIsDeleteOpen}>
                 <DialogContent className="sm:max-w-[425px]">
                     <DialogHeader>
                         <DialogTitle>Удалить колонку?</DialogTitle>
                         <DialogDescription>
-                            Колонка <span className="font-medium">«{column.title}»</span> и все задачи в ней будут удалены навсегда.
-                            Это действие нельзя отменить.
+                            Колонка{' '}
+                            <span className="font-medium">
+                                «{column.title}»
+                            </span>{' '}
+                            и все задачи в ней будут удалены навсегда. Это
+                            действие нельзя отменить.
                         </DialogDescription>
                     </DialogHeader>
 

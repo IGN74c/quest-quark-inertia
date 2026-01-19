@@ -49,8 +49,7 @@ export default function TaskEditDialog({
         assignee_id: task.assignee_id ? String(task.assignee_id) : 'none',
     });
 
-    const canDelete =
-        auth.user.id === task.creator_id
+    const canDelete = auth.user.id === task.creator_id;
     const submit = (e: React.FormEvent) => {
         e.preventDefault();
 
