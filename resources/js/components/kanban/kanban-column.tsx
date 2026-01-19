@@ -1,5 +1,14 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from '@/components/ui/dialog';
+import { Trash2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { useBoardStore } from '@/stores/use-board-store';
 import { Column, SharedData, Task } from '@/types';
@@ -30,12 +39,14 @@ export default function KanbanColumn({
     const { auth } = usePage<SharedData>().props;
     const { board, updateColumnTitle } = useBoardStore();
 
+
     const isAdmin =
         board?.users?.find((u) => u.id === auth.user.id)?.pivot?.role ===
         'admin';
 
-    const [isEditing, setIsEditing] = useState(false);
     const [title, setTitle] = useState(column.title);
+    const [isEditing, setIsEditing] = useState(false);
+    const [isDeleteOpen, setIsDeleteOpen] = useState(false);
 
     const {
         attributes,
@@ -123,9 +134,22 @@ export default function KanbanColumn({
                             </span>
                         )}
 
-                        <span className="rounded-full bg-muted px-2 py-0.5 text-[10px]">
-                            {tasks.length}
-                        </span>
+                        <div className="flex items-center gap-2">
+                            <span className="rounded-full bg-muted px-2 py-0.5 text-[10px]">
+                                {tasks.length}
+                            </span>
+
+                            {isAdmin && (
+                                <Button
+                                    size="icon"
+                                    variant="ghost"
+                                    className="h-7 w-7 opacity-60 hover:opacity-100"
+                                    onClick={() => setIsDeleteOpen(true)}
+                                >
+                                    <Trash2 className="h-4 w-4" />
+                                </Button>
+                            )}
+                        </div>
                     </CardTitle>
                 </CardHeader>
 
@@ -150,6 +174,43 @@ export default function KanbanColumn({
                     </Button>
                 </div>
             </Card>
+
+
+            <Dialog open={isDeleteOpen} onOpenChange={setIsDeleteOpen}>
+                <DialogContent className="sm:max-w-[425px]">
+                    <DialogHeader>
+                        <DialogTitle>Удалить колонку?</DialogTitle>
+                        <DialogDescription>
+                            Колонка <span className="font-medium">«{column.title}»</span> и все задачи в ней будут удалены навсегда.
+                            Это действие нельзя отменить.
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    <DialogFooter>
+                        <Button
+                            variant="outline"
+                            onClick={() => setIsDeleteOpen(false)}
+                        >
+                            Отмена
+                        </Button>
+                        <Button
+                            variant="destructive"
+                            onClick={() => {
+                                router.delete(`/columns/${column.id}`, {
+                                    preserveScroll: true,
+                                    onSuccess: () => {
+                                        setIsDeleteOpen(false);
+                                    },
+                                    // При ошибке (например, нет прав) диалог просто закроется,
+                                    // а сервер вернёт ошибку, которую можно обработать глобально
+                                });
+                            }}
+                        >
+                            Удалить колонку
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }

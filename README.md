@@ -54,68 +54,104 @@ export default ({ children, breadcrumbs, ...props }: AppLayoutProps) => (
         {children}
     </AppLayoutTemplate>
 );
-// app-sidebar-layout.tsx
-import { AppContent } from '@/components/app-content';
-import { AppShell } from '@/components/app-shell';
-import { AppSidebar } from '@/components/app-sidebar';
-import { AppSidebarHeader } from '@/components/app-sidebar-header';
-import { type BreadcrumbItem } from '@/types';
-import { type PropsWithChildren } from 'react';
-export default function AppSidebarLayout({
-    children,
-    breadcrumbs = [],
-}: PropsWithChildren<{ breadcrumbs?: BreadcrumbItem[] }>) {
-    return (
-        <AppShell variant="sidebar">
-            <AppSidebar />
-            <AppContent variant="sidebar" className="overflow-x-hidden">
-                <AppSidebarHeader breadcrumbs={breadcrumbs} />
-                {children}
-            </AppContent>
-        </AppShell>
-    );
-}
 // @types
 import { InertiaLinkProps } from '@inertiajs/react';
 import { LucideIcon } from 'lucide-react';
+
+export interface User {
+    id: number;
+    name: string;
+    email: string;
+    avatar?: string;
+    email_verified_at?: string;
+    created_at: string;
+    updated_at: string;
+    pivot?: BoardUserPivot;
+    [key: string]: unknown;
+}
+
 export interface Board {
     id: number;
     title: string;
+    user_id: number;
+    created_at: string;
+    updated_at: string;
 }
+
+export interface Column {
+    id: number;
+    board_id: number;
+    title: string;
+    position: number;
+    created_at: string;
+    updated_at: string;
+}
+
+export interface Task {
+    id: number;
+    column_id: number;
+    creator_id: number;
+    assignee_id: number | null;
+    title: string;
+    description: string;
+    position: number;
+    created_at: string;
+    updated_at: string;
+    creator?: User;
+    assignee?: User | null;
+}
+
+export interface BoardUserPivot {
+    id: number;
+    board_id: number;
+    user_id: number;
+    role: 'admin' | 'editor' | 'viewer';
+    created_at: string;
+    updated_at: string;
+}
+
+export interface ColumnWithTasks extends Column {
+    tasks: Task[];
+}
+
+export interface BoardData extends Board {
+    columns: ColumnWithTasks[];
+    users?: User[];
+}
+
 export interface Auth {
     user: User;
     boards: Board[];
 }
+
 export interface BreadcrumbItem {
     title: string;
     href: string;
 }
+
 export interface NavGroup {
     title: string;
     items: NavItem[];
 }
+
 export interface NavItem {
     title: string;
     href: NonNullable<InertiaLinkProps['href']>;
     icon?: LucideIcon | null;
     isActive?: boolean;
 }
+
 export interface SharedData {
     name: string;
-    quote: { message: string; author: string };
+    quote: {
+        message: string;
+        author: string;
+    };
     auth: Auth;
     sidebarOpen: boolean;
     [key: string]: unknown;
 }
-export interface User {
-    id: number;
-    name: string;
-    email: string;
-    avatar?: string;
-    created_at: string;
-    updated_at: string;
-    [key: string]: unknown;
-}
+
 ```
 ## Зависимости
 ```json
@@ -147,6 +183,7 @@ export interface User {
     "@radix-ui/react-dropdown-menu": "^2.1.6",
     "@radix-ui/react-label": "^2.1.2",
     "@radix-ui/react-navigation-menu": "^1.2.5",
+    "@radix-ui/react-progress": "^1.1.8",
     "@radix-ui/react-select": "^2.1.6",
     "@radix-ui/react-separator": "^1.1.2",
     "@radix-ui/react-slot": "^1.2.3",
@@ -170,8 +207,9 @@ export interface User {
     "tailwindcss": "^4.0.0",
     "tw-animate-css": "^1.4.0",
     "typescript": "^5.7.2",
-    "vite": "^7.0.4"
-}
+    "vite": "^7.0.4",
+    "zustand": "^5.0.9"
+},
 // composer.json
 "require": {
     "php": "^8.2",
@@ -194,26 +232,29 @@ export interface User {
 ```
 ## Маршруты
 ```php
+Route::get('/', function () {
+    return Inertia::render('welcome', [
+        'canRegister' => Features::enabled(Features::registration()),
+    ]);
+})->name('home');
+
 Route::middleware(['auth'])->group(function () {
     Route::get('dashboard', [BoardController::class, 'index'])->name('dashboard');
 
-    // --- Доски (Boards) ---
     Route::get('/boards/{board}', [BoardController::class, 'show'])->name('boards.show');
     Route::post('/boards', [BoardController::class, 'store'])->name('boards.store');
+    Route::patch('/boards/{board}', [BoardController::class, 'update'])->name('boards.update');
     Route::delete('/boards/{board}', [BoardController::class, 'destroy'])->name('boards.destroy');
     Route::post('/boards/{board}/invite', [BoardController::class, 'invite'])->name('boards.invite');
 
-    // --- Управление участниками ---
     Route::patch('/boards/{board}/users/{user}', [BoardController::class, 'updateUserRole'])->name('boards.users.update');
     Route::delete('/boards/{board}/users/{user}', [BoardController::class, 'removeUser'])->name('boards.users.remove');
 
-    // --- Колонки (Columns) ---
     Route::post('/boards/{board}/columns', [ColumnController::class, 'store'])->name('columns.store');
     Route::delete('/columns/{column}', [ColumnController::class, 'destroy'])->name('columns.destroy');
     Route::patch('/columns/{column}', [ColumnController::class, 'update'])->name('columns.update');
     Route::patch('/columns/{column}/move', [TaskMovementController::class, 'moveColumn'])->name('columns.move');
 
-    // --- Задачи (Tasks) ---
     Route::post('/columns/{column}/tasks', [TaskController::class, 'store'])->name('tasks.store');
     Route::patch('/tasks/{task}', [TaskController::class, 'update'])->name('tasks.update');
     Route::delete('/tasks/{task}', [TaskController::class, 'destroy'])->name('tasks.destroy');

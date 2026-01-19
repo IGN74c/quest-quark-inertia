@@ -14,14 +14,12 @@ class ColumnController extends Controller
      */
     public function store(Request $request, Board $board)
     {
-        // Проверяем права (админ или редактор)
         $this->authorize('update', $board);
 
         $validated = $request->validate([
             'title' => 'required|string|max:255',
         ]);
 
-        // Определяем позицию (в конец)
         $maxPosition = $board->columns()->max('position') ?? -1;
 
         $board->columns()->create([
@@ -59,10 +57,10 @@ class ColumnController extends Controller
             $board = $column->board;
             $deletedPosition = $column->position;
 
-            // Удаляем колонку (задачи удалятся по cascade в БД)
+            $column->tasks()->delete();
+
             $column->delete();
 
-            // Сдвигаем позиции остальных колонок
             $board->columns()
                 ->where('position', '>', $deletedPosition)
                 ->decrement('position');
@@ -70,5 +68,4 @@ class ColumnController extends Controller
 
         return back();
     }
-
 }
