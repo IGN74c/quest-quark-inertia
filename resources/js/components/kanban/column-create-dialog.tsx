@@ -16,7 +16,11 @@ interface ColumnCreateDialogProps {
     onOpenChange: (open: boolean) => void;
 }
 
-export default function ColumnCreateDialog({ boardId, open, onOpenChange }: ColumnCreateDialogProps) {
+export default function ColumnCreateDialog({
+    boardId,
+    open,
+    onOpenChange,
+}: ColumnCreateDialogProps) {
     const { data, setData, post, processing, reset, errors } = useForm({
         title: '',
     });
@@ -45,15 +49,25 @@ export default function ColumnCreateDialog({ boardId, open, onOpenChange }: Colu
                             <Input
                                 id="col-title"
                                 value={data.title}
-                                onChange={(e) => setData('title', e.target.value)}
+                                onChange={(e) =>
+                                    setData('title', e.target.value)
+                                }
                                 placeholder="Например: В работе"
                                 autoFocus
                             />
-                            {errors.title && <p className="text-xs text-destructive">{errors.title}</p>}
+                            {errors.title && (
+                                <p className="text-xs text-destructive">
+                                    {errors.title}
+                                </p>
+                            )}
                         </div>
                     </div>
                     <DialogFooter>
-                        <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+                        <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => onOpenChange(false)}
+                        >
                             Отмена
                         </Button>
                         <Button type="submit" disabled={processing}>

@@ -1,5 +1,6 @@
 import { Breadcrumbs } from '@/components/breadcrumbs';
 import { Icon } from '@/components/icon';
+import { ThemeToggleButton } from '@/components/theme-toggle-button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import {
@@ -35,7 +36,6 @@ import { Link, usePage } from '@inertiajs/react';
 import { LayoutGrid, Menu } from 'lucide-react';
 import AppLogo from './app-logo';
 import AppLogoIcon from './app-logo-icon';
-import { ThemeToggleButton } from '@/components/theme-toggle-button';
 
 const mainNavItems: NavItem[] = [
     {
@@ -228,7 +228,10 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
                                         </Avatar>
                                     </Button>
                                 </DropdownMenuTrigger>
-                                <DropdownMenuContent className="w-56" align="end">
+                                <DropdownMenuContent
+                                    className="w-56"
+                                    align="end"
+                                >
                                     <UserMenuContent user={auth.user} />
                                 </DropdownMenuContent>
                             </DropdownMenu>
@@ -238,7 +241,9 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
                                     <Link href={login.url()}>Вход</Link>
                                 </Button>
                                 <Button asChild size="sm">
-                                    <Link href={register.url()}>Регистрация</Link>
+                                    <Link href={register.url()}>
+                                        Регистрация
+                                    </Link>
                                 </Button>
                             </div>
                         )}

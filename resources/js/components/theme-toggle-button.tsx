@@ -1,14 +1,22 @@
 import { Button } from '@/components/ui/button';
-import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from '@/components/ui/tooltip';
-import { Moon, Sun } from 'lucide-react';
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { useAppearance } from '@/hooks/use-appearance';
+import { Moon, Sun } from 'lucide-react';
 
 export function ThemeToggleButton() {
     const { appearance, updateAppearance } = useAppearance();
 
-    const isDark = appearance === 'dark' ||
-        (appearance === 'system' && 
-         (typeof window !== 'undefined' ? window.matchMedia('(prefers-color-scheme: dark)').matches : false));
+    const isDark =
+        appearance === 'dark' ||
+        (appearance === 'system' &&
+            (typeof window !== 'undefined'
+                ? window.matchMedia('(prefers-color-scheme: dark)').matches
+                : false));
 
     const toggleTheme = () => {
         const next = isDark ? 'light' : 'dark';
@@ -16,7 +24,11 @@ export function ThemeToggleButton() {
     };
 
     const getIcon = () => {
-        return isDark ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />;
+        return isDark ? (
+            <Sun className="h-5 w-5" />
+        ) : (
+            <Moon className="h-5 w-5" />
+        );
     };
 
     const getTooltip = () => {

@@ -8,7 +8,6 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import {
     Select,
     SelectContent,
@@ -16,8 +15,9 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
-import { useForm } from '@inertiajs/react';
+import { Textarea } from '@/components/ui/textarea';
 import { useBoardStore } from '@/stores/use-board-store';
+import { useForm } from '@inertiajs/react';
 import { User } from 'lucide-react';
 
 interface TaskCreateDialogProps {
@@ -26,7 +26,11 @@ interface TaskCreateDialogProps {
     onOpenChange: (open: boolean) => void;
 }
 
-export default function TaskCreateDialog({ columnId, open, onOpenChange }: TaskCreateDialogProps) {
+export default function TaskCreateDialog({
+    columnId,
+    open,
+    onOpenChange,
+}: TaskCreateDialogProps) {
     const board = useBoardStore((state) => state.board);
 
     const { data, setData, post, processing, reset, errors } = useForm({
@@ -64,11 +68,17 @@ export default function TaskCreateDialog({ columnId, open, onOpenChange }: TaskC
                             <Input
                                 id="create-title"
                                 value={data.title}
-                                onChange={(e) => setData('title', e.target.value)}
+                                onChange={(e) =>
+                                    setData('title', e.target.value)
+                                }
                                 placeholder="Что нужно сделать?"
                                 autoFocus
                             />
-                            {errors.title && <p className="text-xs text-destructive">{errors.title}</p>}
+                            {errors.title && (
+                                <p className="text-xs text-destructive">
+                                    {errors.title}
+                                </p>
+                            )}
                         </div>
 
                         <div className="space-y-2">
@@ -76,7 +86,9 @@ export default function TaskCreateDialog({ columnId, open, onOpenChange }: TaskC
                             <Textarea
                                 id="create-description"
                                 value={data.description}
-                                onChange={(e) => setData('description', e.target.value)}
+                                onChange={(e) =>
+                                    setData('description', e.target.value)
+                                }
                                 placeholder="Добавьте подробностей..."
                             />
                         </div>
@@ -85,7 +97,9 @@ export default function TaskCreateDialog({ columnId, open, onOpenChange }: TaskC
                             <Label>Исполнитель</Label>
                             <Select
                                 value={data.assignee_id}
-                                onValueChange={(value) => setData('assignee_id', value)}
+                                onValueChange={(value) =>
+                                    setData('assignee_id', value)
+                                }
                             >
                                 <SelectTrigger>
                                     <SelectValue placeholder="Выберите исполнителя" />
@@ -93,11 +107,15 @@ export default function TaskCreateDialog({ columnId, open, onOpenChange }: TaskC
                                 <SelectContent>
                                     <SelectItem value="none">
                                         <span className="flex items-center text-muted-foreground">
-                                            <User className="mr-2 h-4 w-4" /> Без исполнителя
+                                            <User className="mr-2 h-4 w-4" />{' '}
+                                            Без исполнителя
                                         </span>
                                     </SelectItem>
                                     {board?.users?.map((user) => (
-                                        <SelectItem key={user.id} value={String(user.id)}>
+                                        <SelectItem
+                                            key={user.id}
+                                            value={String(user.id)}
+                                        >
                                             {user.name}
                                         </SelectItem>
                                     ))}
@@ -107,7 +125,11 @@ export default function TaskCreateDialog({ columnId, open, onOpenChange }: TaskC
                     </div>
 
                     <DialogFooter>
-                        <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+                        <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => onOpenChange(false)}
+                        >
                             Отмена
                         </Button>
                         <Button type="submit" disabled={processing}>

@@ -11,12 +11,11 @@ import {
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
 import { dashboard } from '@/routes';
+import boards from '@/routes/boards';
 import { SharedData, type NavItem } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
 import { Layout, LayoutGrid } from 'lucide-react';
 import AppLogo from './app-logo';
-import boards from '@/routes/boards';
-
 
 const mainNavItems: NavItem[] = [
     {
@@ -26,8 +25,7 @@ const mainNavItems: NavItem[] = [
     },
 ];
 
-const footerNavItems: NavItem[] = [
-];
+const footerNavItems: NavItem[] = [];
 
 export function AppSidebar() {
     const { auth } = usePage<SharedData>().props;
@@ -52,16 +50,10 @@ export function AppSidebar() {
             </SidebarHeader>
 
             <SidebarContent>
-                <NavMain
-                    title='Платформа'
-                    items={mainNavItems}
-                />
+                <NavMain title="Платформа" items={mainNavItems} />
 
                 {boardNavItems.length > 0 && (
-                    <NavMain
-                        title='Доски'
-                        items={boardNavItems}
-                    />
+                    <NavMain title="Доски" items={boardNavItems} />
                 )}
             </SidebarContent>
 

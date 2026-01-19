@@ -1,15 +1,21 @@
-import { Plus, UserPlus, ClipboardList, Users, TrendingUp } from 'lucide-react';
-import { useState } from 'react';
-import { Head, useForm, Link } from '@inertiajs/react';
-import AppLayout from '@/layouts/app-layout';
-import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { User, type BreadcrumbItem } from '@/types';
-import boardsRoute from '@/routes/boards';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import {
+    Dialog,
+    DialogContent,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import AppLayout from '@/layouts/app-layout';
+import boardsRoute from '@/routes/boards';
+import { User, type BreadcrumbItem } from '@/types';
+import { Head, Link, useForm } from '@inertiajs/react';
+import { ClipboardList, Plus, TrendingUp, UserPlus, Users } from 'lucide-react';
+import { useState } from 'react';
 
 interface Board {
     id: number;
@@ -39,7 +45,9 @@ export default function Dashboard({ boards = [], stats }: DashboardProps) {
     const [inviteOpen, setInviteOpen] = useState(false);
     const [selectedBoard, setSelectedBoard] = useState<number | null>(null);
 
-    const { data, setData, post, reset, errors, processing } = useForm({ title: '' });
+    const { data, setData, post, reset, errors, processing } = useForm({
+        title: '',
+    });
     const inviteForm = useForm({ email: '' });
 
     const submit = (e: React.FormEvent) => {
@@ -48,7 +56,7 @@ export default function Dashboard({ boards = [], stats }: DashboardProps) {
             onSuccess: () => {
                 setOpen(false);
                 reset();
-            }
+            },
         });
     };
 
@@ -61,11 +69,13 @@ export default function Dashboard({ boards = [], stats }: DashboardProps) {
                 setInviteOpen(false);
                 setSelectedBoard(null);
                 inviteForm.reset();
-            }
+            },
         });
     };
 
-    const breadcrumbs: BreadcrumbItem[] = [{ title: 'Dashboard', href: '/dashboard' }];
+    const breadcrumbs: BreadcrumbItem[] = [
+        { title: 'Dashboard', href: '/dashboard' },
+    ];
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -78,8 +88,12 @@ export default function Dashboard({ boards = [], stats }: DashboardProps) {
                         <CardContent className="p-6">
                             <div className="flex items-center justify-between">
                                 <div>
-                                    <p className="text-sm font-medium text-muted-foreground">Доски</p>
-                                    <p className="text-2xl font-bold mt-2">{stats.total_boards}</p>
+                                    <p className="text-sm font-medium text-muted-foreground">
+                                        Доски
+                                    </p>
+                                    <p className="mt-2 text-2xl font-bold">
+                                        {stats.total_boards}
+                                    </p>
                                 </div>
                                 <ClipboardList className="h-8 w-8 text-muted-foreground/50" />
                             </div>
@@ -90,21 +104,28 @@ export default function Dashboard({ boards = [], stats }: DashboardProps) {
                         <CardContent className="p-6">
                             <div className="flex items-center justify-between">
                                 <div>
-                                    <p className="text-sm font-medium text-muted-foreground">Всего задач</p>
-                                    <p className="text-2xl font-bold mt-2">{stats.total_tasks}</p>
+                                    <p className="text-sm font-medium text-muted-foreground">
+                                        Всего задач
+                                    </p>
+                                    <p className="mt-2 text-2xl font-bold">
+                                        {stats.total_tasks}
+                                    </p>
                                 </div>
                                 <TrendingUp className="h-8 w-8 text-muted-foreground/50" />
                             </div>
                         </CardContent>
                     </Card>
 
-
                     <Card>
                         <CardContent className="p-6">
                             <div className="flex items-center justify-between">
                                 <div>
-                                    <p className="text-sm font-medium text-muted-foreground">Участники</p>
-                                    <p className="text-2xl font-bold mt-2">{stats.total_members}</p>
+                                    <p className="text-sm font-medium text-muted-foreground">
+                                        Участники
+                                    </p>
+                                    <p className="mt-2 text-2xl font-bold">
+                                        {stats.total_members}
+                                    </p>
                                 </div>
                                 <Users className="h-8 w-8 text-muted-foreground/50" />
                             </div>
@@ -116,31 +137,38 @@ export default function Dashboard({ boards = [], stats }: DashboardProps) {
                 <div className="flex items-center justify-between">
                     <h1 className="text-2xl font-semibold">Мои доски</h1>
                     <Button size="sm" onClick={() => setOpen(true)}>
-                        <Plus className="h-4 w-4" />Создать доску
+                        <Plus className="h-4 w-4" />
+                        Создать доску
                     </Button>
                 </div>
 
                 <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                     {boards.map((board) => {
-                        const totalTasks = board.columns.reduce((sum, col) => sum + col.tasks.length, 0);
+                        const totalTasks = board.columns.reduce(
+                            (sum, col) => sum + col.tasks.length,
+                            0,
+                        );
 
                         return (
                             <div
                                 key={board.id}
-                                className="group relative rounded-xl border bg-card hover:shadow-lg transition-all overflow-hidden"
+                                className="group relative overflow-hidden rounded-xl border bg-card transition-all hover:shadow-lg"
                             >
-                                <Link href={boardsRoute.show(board.id).url} className="absolute inset-0 z-10" />
+                                <Link
+                                    href={boardsRoute.show(board.id).url}
+                                    className="absolute inset-0 z-10"
+                                />
 
-                                <div className="aspect-video p-6 relative">
-                                    <div className="flex justify-between items-start mb-8">
-                                        <h3 className="text-lg font-bold text-card-foreground z-20 relative">
+                                <div className="relative aspect-video p-6">
+                                    <div className="mb-8 flex items-start justify-between">
+                                        <h3 className="relative z-20 text-lg font-bold text-card-foreground">
                                             {board.title}
                                         </h3>
                                         {board.pivot?.role === 'admin' && (
                                             <Button
                                                 variant="ghost"
                                                 size="icon"
-                                                className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity z-20"
+                                                className="z-20 h-8 w-8 opacity-0 transition-opacity group-hover:opacity-100"
                                                 onClick={(e) => {
                                                     e.preventDefault();
                                                     e.stopPropagation();
@@ -153,17 +181,28 @@ export default function Dashboard({ boards = [], stats }: DashboardProps) {
                                         )}
                                     </div>
 
-                                    <div className="absolute bottom-4 left-4 right-4 space-y-3 z-20">
+                                    <div className="absolute right-4 bottom-4 left-4 z-20 space-y-3">
                                         <div className="flex items-center justify-between text-sm">
-                                            <span className="text-muted-foreground">Задачи</span>
-                                            <span className="font-medium">{totalTasks}</span>
+                                            <span className="text-muted-foreground">
+                                                Задачи
+                                            </span>
+                                            <span className="font-medium">
+                                                {totalTasks}
+                                            </span>
                                         </div>
                                         <div className="flex items-center justify-between text-xs">
-                                            <Badge variant="secondary" className="text-[10px]">
-                                                {board.pivot?.role || 'участник'}
+                                            <Badge
+                                                variant="secondary"
+                                                className="text-[10px]"
+                                            >
+                                                {board.pivot?.role ||
+                                                    'участник'}
                                             </Badge>
                                             <span className="text-muted-foreground">
-                                                {board.users.length} {board.users.length === 1 ? 'участник' : 'участников'}
+                                                {board.users.length}{' '}
+                                                {board.users.length === 1
+                                                    ? 'участник'
+                                                    : 'участников'}
                                             </span>
                                         </div>
                                     </div>
@@ -175,10 +214,12 @@ export default function Dashboard({ boards = [], stats }: DashboardProps) {
                     {/* Кнопка создания новой доски */}
                     <button
                         onClick={() => setOpen(true)}
-                        className="aspect-video flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-muted-foreground/25 hover:border-muted-foreground/50 hover:bg-accent/50 transition-all"
+                        className="flex aspect-video flex-col items-center justify-center rounded-xl border-2 border-dashed border-muted-foreground/25 transition-all hover:border-muted-foreground/50 hover:bg-accent/50"
                     >
-                        <Plus className="h-10 w-10 text-muted-foreground mb-3" />
-                        <span className="text font-medium text-muted-foreground">Новая доска</span>
+                        <Plus className="mb-3 h-10 w-10 text-muted-foreground" />
+                        <span className="text font-medium text-muted-foreground">
+                            Новая доска
+                        </span>
                     </button>
                 </div>
             </div>
@@ -187,45 +228,68 @@ export default function Dashboard({ boards = [], stats }: DashboardProps) {
             <Dialog open={open} onOpenChange={setOpen}>
                 <DialogContent>
                     <form onSubmit={submit}>
-                        <DialogHeader><DialogTitle>Новая доска</DialogTitle></DialogHeader>
-                        <div className="py-4 space-y-2">
+                        <DialogHeader>
+                            <DialogTitle>Новая доска</DialogTitle>
+                        </DialogHeader>
+                        <div className="space-y-2 py-4">
                             <Label>Название</Label>
                             <Input
                                 value={data.title}
-                                onChange={e => setData('title', e.target.value)}
+                                onChange={(e) =>
+                                    setData('title', e.target.value)
+                                }
                                 autoFocus
                             />
-                            {errors.title && <p className="text-sm text-destructive">{errors.title}</p>}
+                            {errors.title && (
+                                <p className="text-sm text-destructive">
+                                    {errors.title}
+                                </p>
+                            )}
                         </div>
                         <DialogFooter>
-                            <Button type="submit" disabled={processing}>Создать</Button>
+                            <Button type="submit" disabled={processing}>
+                                Создать
+                            </Button>
                         </DialogFooter>
                     </form>
                 </DialogContent>
             </Dialog>
 
             {/* Модалка приглашения пользователя */}
-            <Dialog open={inviteOpen} onOpenChange={(val) => {
-                setInviteOpen(val);
-                if (!val) setSelectedBoard(null);
-            }}>
+            <Dialog
+                open={inviteOpen}
+                onOpenChange={(val) => {
+                    setInviteOpen(val);
+                    if (!val) setSelectedBoard(null);
+                }}
+            >
                 <DialogContent>
                     <form onSubmit={handleInvite}>
-                        <DialogHeader><DialogTitle>Пригласить пользователя</DialogTitle></DialogHeader>
-                        <div className="py-4 space-y-4">
+                        <DialogHeader>
+                            <DialogTitle>Пригласить пользователя</DialogTitle>
+                        </DialogHeader>
+                        <div className="space-y-4 py-4">
                             <div className="space-y-2">
                                 <Label>Email пользователя</Label>
                                 <Input
                                     type="email"
                                     value={inviteForm.data.email}
-                                    onChange={e => inviteForm.setData('email', e.target.value)}
+                                    onChange={(e) =>
+                                        inviteForm.setData(
+                                            'email',
+                                            e.target.value,
+                                        )
+                                    }
                                     placeholder="user@example.com"
                                     required
                                 />
                             </div>
                         </div>
                         <DialogFooter>
-                            <Button type="submit" disabled={inviteForm.processing}>
+                            <Button
+                                type="submit"
+                                disabled={inviteForm.processing}
+                            >
                                 Отправить приглашение
                             </Button>
                         </DialogFooter>

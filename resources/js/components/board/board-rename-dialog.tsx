@@ -1,9 +1,15 @@
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { useState } from 'react';
-import { router } from '@inertiajs/react';
+import {
+    Dialog,
+    DialogContent,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
 import { BoardData } from '@/types';
+import { router } from '@inertiajs/react';
+import { useState } from 'react';
 
 interface BoardRenameDialogProps {
     board: BoardData;
@@ -11,7 +17,11 @@ interface BoardRenameDialogProps {
     onOpenChange: (open: boolean) => void;
 }
 
-export default function BoardRenameDialog({ board, open, onOpenChange }: BoardRenameDialogProps) {
+export default function BoardRenameDialog({
+    board,
+    open,
+    onOpenChange,
+}: BoardRenameDialogProps) {
     const [title, setTitle] = useState(board.title);
     const [loading, setLoading] = useState(false);
 
@@ -29,7 +39,7 @@ export default function BoardRenameDialog({ board, open, onOpenChange }: BoardRe
                 preserveScroll: true,
                 onSuccess: () => onOpenChange(false),
                 onFinish: () => setLoading(false),
-            }
+            },
         );
     };
 
@@ -46,7 +56,10 @@ export default function BoardRenameDialog({ board, open, onOpenChange }: BoardRe
                     onKeyDown={(e) => e.key === 'Enter' && handleSubmit()}
                 />
                 <DialogFooter>
-                    <Button variant="outline" onClick={() => onOpenChange(false)}>
+                    <Button
+                        variant="outline"
+                        onClick={() => onOpenChange(false)}
+                    >
                         Отмена
                     </Button>
                     <Button onClick={handleSubmit} disabled={loading}>

@@ -12,23 +12,31 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
-import { router } from '@inertiajs/react';
-import { Trash2, Shield, User as UserIcon } from 'lucide-react';
 import { User } from '@/types';
+import { router } from '@inertiajs/react';
+import { Shield, Trash2, User as UserIcon } from 'lucide-react';
 
 interface BoardUsersDialogProps {
     boardId: number;
-    users: (User)[];
+    users: User[];
     open: boolean;
     onOpenChange: (open: boolean) => void;
 }
 
-export default function BoardUsersDialog({ boardId, users, open, onOpenChange }: BoardUsersDialogProps) {
-
+export default function BoardUsersDialog({
+    boardId,
+    users,
+    open,
+    onOpenChange,
+}: BoardUsersDialogProps) {
     const updateRole = (userId: number, role: string) => {
-        router.patch(`/boards/${boardId}/users/${userId}`, { role }, {
-            preserveScroll: true,
-        });
+        router.patch(
+            `/boards/${boardId}/users/${userId}`,
+            { role },
+            {
+                preserveScroll: true,
+            },
+        );
     };
 
     const removeUser = (userId: number) => {
@@ -47,14 +55,21 @@ export default function BoardUsersDialog({ boardId, users, open, onOpenChange }:
                 </DialogHeader>
                 <div className="space-y-4 py-4">
                     {users.map((user) => (
-                        <div key={user.id} className="flex items-center justify-between border-b pb-3 last:border-0">
+                        <div
+                            key={user.id}
+                            className="flex items-center justify-between border-b pb-3 last:border-0"
+                        >
                             <div className="flex items-center gap-3">
                                 <div className="flex h-9 w-9 items-center justify-center rounded-full bg-accent">
                                     <UserIcon className="h-5 w-5 text-muted-foreground" />
                                 </div>
                                 <div>
-                                    <p className="text-sm font-medium leading-none">{user.name}</p>
-                                    <p className="text-xs text-muted-foreground">{user.email}</p>
+                                    <p className="text-sm leading-none font-medium">
+                                        {user.name}
+                                    </p>
+                                    <p className="text-xs text-muted-foreground">
+                                        {user.email}
+                                    </p>
                                 </div>
                             </div>
 
@@ -64,14 +79,20 @@ export default function BoardUsersDialog({ boardId, users, open, onOpenChange }:
                                     <>
                                         <Select
                                             defaultValue={user.pivot?.role}
-                                            onValueChange={(value) => updateRole(user.id, value)}
+                                            onValueChange={(value) =>
+                                                updateRole(user.id, value)
+                                            }
                                         >
                                             <SelectTrigger className="h-8 w-[110px] text-xs">
                                                 <SelectValue />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                <SelectItem value="editor">Редактор</SelectItem>
-                                                <SelectItem value="viewer">Читатель</SelectItem>
+                                                <SelectItem value="editor">
+                                                    Редактор
+                                                </SelectItem>
+                                                <SelectItem value="viewer">
+                                                    Читатель
+                                                </SelectItem>
                                             </SelectContent>
                                         </Select>
                                         <Button
@@ -84,8 +105,9 @@ export default function BoardUsersDialog({ boardId, users, open, onOpenChange }:
                                         </Button>
                                     </>
                                 ) : (
-                                    <span className="flex items-center gap-1 text-xs font-semibold text-primary px-2">
-                                        <Shield className="h-3 w-3" /> Администратор
+                                    <span className="flex items-center gap-1 px-2 text-xs font-semibold text-primary">
+                                        <Shield className="h-3 w-3" />{' '}
+                                        Администратор
                                     </span>
                                 )}
                             </div>

@@ -1,18 +1,25 @@
+import { useBoardStore } from '@/stores/use-board-store';
+import { Task } from '@/types';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { GripVertical, Calendar } from 'lucide-react';
+import { Calendar, GripVertical } from 'lucide-react';
 import { useState } from 'react';
 import TaskEditDialog from './task-edit-dialog';
-import { Task } from '@/types';
-import { useBoardStore } from '@/stores/use-board-store';
 
 export default function KanbanTask({ task }: { task: Task }) {
     const board = useBoardStore((state) => state.board);
     const [isModalOpen, setIsModalOpen] = useState(false);
 
-    const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    const {
+        attributes,
+        listeners,
+        setNodeRef,
+        transform,
+        transition,
+        isDragging,
+    } = useSortable({
         id: `task-${task.id}`,
-        data: { type: 'task', task }
+        data: { type: 'task', task },
     });
 
     const style = {
@@ -25,7 +32,7 @@ export default function KanbanTask({ task }: { task: Task }) {
             <div
                 ref={setNodeRef}
                 style={style}
-                className="opacity-50 bg-accent/50 border-2 border-primary/20 border-dashed rounded-lg h-[100px]"
+                className="h-[100px] rounded-lg border-2 border-dashed border-primary/20 bg-accent/50 opacity-50"
             />
         );
     }
@@ -37,36 +44,39 @@ export default function KanbanTask({ task }: { task: Task }) {
                 style={style}
                 {...attributes}
                 onClick={() => setIsModalOpen(true)}
-                className="group relative flex flex-col gap-3 rounded-lg border bg-card p-3 shadow-sm transition-all hover:shadow-md hover:border-primary/50 cursor-pointer"
+                className="group relative flex cursor-pointer flex-col gap-3 rounded-lg border bg-card p-3 shadow-sm transition-all hover:border-primary/50 hover:shadow-md"
             >
                 <div className="flex items-center justify-between">
-                    <span className="text-[10px] font-mono text-muted-foreground uppercase tracking-wider">
-
-                    </span>
+                    <span className="font-mono text-[10px] tracking-wider text-muted-foreground uppercase"></span>
                     <button
                         {...listeners}
                         onClick={(e) => e.stopPropagation()}
-                        className="-mr-1 -mt-1 p-1 text-muted-foreground/50 hover:text-foreground opacity-0 group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing rounded hover:bg-muted"
+                        className="-mt-1 -mr-1 cursor-grab rounded p-1 text-muted-foreground/50 opacity-0 transition-opacity group-hover:opacity-100 hover:bg-muted hover:text-foreground active:cursor-grabbing"
                     >
                         <GripVertical className="h-4 w-4" />
                     </button>
                 </div>
 
                 <div>
-                    <p className="text-sm font-medium leading-snug text-card-foreground line-clamp-3">
+                    <p className="line-clamp-3 text-sm leading-snug font-medium text-card-foreground">
                         {task.title}
                     </p>
                 </div>
 
-                <div className="flex items-center justify-between pt-1 border-t border-border/40 mt-1">
+                <div className="mt-1 flex items-center justify-between border-t border-border/40 pt-1">
                     <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
                         <Calendar className="h-3 w-3" />
-                        <span>{new Date(task.created_at).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' })}</span>
+                        <span>
+                            {new Date(task.created_at).toLocaleDateString(
+                                'ru-RU',
+                                { day: 'numeric', month: 'short' },
+                            )}
+                        </span>
                     </div>
 
                     {task.assignee && (
                         <div
-                            className="flex items-center gap-1.5 pl-2 rounded-full bg-muted/50 pr-2 py-0.5 max-w-[120px]"
+                            className="flex max-w-[120px] items-center gap-1.5 rounded-full bg-muted/50 py-0.5 pr-2 pl-2"
                             title={task.assignee.name}
                         >
                             <div className="relative flex h-5 w-5 shrink-0 overflow-hidden rounded-full border border-background">
@@ -82,7 +92,7 @@ export default function KanbanTask({ task }: { task: Task }) {
                                     </div>
                                 )}
                             </div>
-                            <span className="text-[10px] font-medium truncate text-muted-foreground">
+                            <span className="truncate text-[10px] font-medium text-muted-foreground">
                                 {task.assignee.name.split(' ')[0]}
                             </span>
                         </div>

@@ -1,45 +1,41 @@
-import { useState, useEffect } from 'react';
-import { Head, router, usePage } from '@inertiajs/react';
-import {
-    SharedData,
-    Task,
-    type BoardData,
-} from '@/types';
 import AppLayout from '@/layouts/app-layout';
 import { useBoardStore } from '@/stores/use-board-store';
+import { SharedData, Task, type BoardData } from '@/types';
+import { Head, router, usePage } from '@inertiajs/react';
+import { useEffect, useState } from 'react';
 
-import { MoreVertical, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
     DndContext,
+    DragEndEvent,
+    DragOverEvent,
     DragOverlay,
     DragStartEvent,
-    DragOverEvent,
-    DragEndEvent,
     closestCorners,
     defaultDropAnimationSideEffects,
 } from '@dnd-kit/core';
 import {
     SortableContext,
-    horizontalListSortingStrategy,
     arrayMove,
+    horizontalListSortingStrategy,
 } from '@dnd-kit/sortable';
+import { MoreVertical, Users } from 'lucide-react';
 
+import BoardDeleteDialog from '@/components/board/board-delete-dialog';
+import BoardRenameDialog from '@/components/board/board-rename-dialog';
+import BoardUsersDialog from '@/components/board/board-users-dialog';
+import ColumnCreateDialog from '@/components/kanban/column-create-dialog';
 import KanbanColumn from '@/components/kanban/kanban-column';
 import KanbanTask from '@/components/kanban/kanban-task';
 import TaskCreateDialog from '@/components/kanban/task-create-dialog';
-import ColumnCreateDialog from '@/components/kanban/column-create-dialog';
-import BoardUsersDialog from '@/components/board/board-users-dialog';
-import tasksRoute from '@/routes/tasks';
 import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
-    DropdownMenuTrigger,
     DropdownMenuSeparator,
+    DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import BoardRenameDialog from '@/components/board/board-rename-dialog';
-import BoardDeleteDialog from '@/components/board/board-delete-dialog';
+import tasksRoute from '@/routes/tasks';
 
 const getColumnDndId = (id: number) => `column-${id}`;
 const getTaskDndId = (id: number) => `task-${id}`;
@@ -50,7 +46,8 @@ const parseDndId = (id: string) => ({
 });
 
 function useKanbanDnd(initialBoard: BoardData) {
-    const { columns, setBoard, updateColumns, updateColumnOrder } = useBoardStore();
+    const { columns, setBoard, updateColumns, updateColumnOrder } =
+        useBoardStore();
     const [activeTask, setActiveTask] = useState<Task | null>(null);
     const [activeColumnId, setActiveColumnId] = useState<number | null>(null);
 
@@ -58,7 +55,9 @@ function useKanbanDnd(initialBoard: BoardData) {
         const { type, originalId } = parseDndId(event.active.id as string);
 
         if (type === 'task') {
-            const task = columns.flatMap(c => c.tasks).find(t => t.id === originalId);
+            const task = columns
+                .flatMap((c) => c.tasks)
+                .find((t) => t.id === originalId);
             setActiveTask(task || null);
         } else if (type === 'column') {
             setActiveColumnId(originalId);
@@ -76,25 +75,40 @@ function useKanbanDnd(initialBoard: BoardData) {
         const { type: activeType } = parseDndId(activeId);
         if (activeType !== 'task') return;
 
-        const activeCol = columns.find(c => c.tasks.some(t => getTaskDndId(t.id) === activeId));
-        const overCol = columns.find(c => getColumnDndId(c.id) === overId) ||
-            columns.find(c => c.tasks.some(t => getTaskDndId(t.id) === overId));
+        const activeCol = columns.find((c) =>
+            c.tasks.some((t) => getTaskDndId(t.id) === activeId),
+        );
+        const overCol =
+            columns.find((c) => getColumnDndId(c.id) === overId) ||
+            columns.find((c) =>
+                c.tasks.some((t) => getTaskDndId(t.id) === overId),
+            );
 
         if (!activeCol || !overCol || activeCol.id === overCol.id) return;
 
-        updateColumns(columns.map(col => {
-            if (col.id === activeCol.id) {
-                return { ...col, tasks: col.tasks.filter(t => getTaskDndId(t.id) !== activeId) };
-            }
-            if (col.id === overCol.id) {
-                const overIndex = col.tasks.findIndex(t => getTaskDndId(t.id) === overId);
-                const newIndex = overIndex === -1 ? col.tasks.length : overIndex;
-                const newTasks = [...col.tasks];
-                newTasks.splice(newIndex, 0, activeTask!);
-                return { ...col, tasks: newTasks };
-            }
-            return col;
-        }));
+        updateColumns(
+            columns.map((col) => {
+                if (col.id === activeCol.id) {
+                    return {
+                        ...col,
+                        tasks: col.tasks.filter(
+                            (t) => getTaskDndId(t.id) !== activeId,
+                        ),
+                    };
+                }
+                if (col.id === overCol.id) {
+                    const overIndex = col.tasks.findIndex(
+                        (t) => getTaskDndId(t.id) === overId,
+                    );
+                    const newIndex =
+                        overIndex === -1 ? col.tasks.length : overIndex;
+                    const newTasks = [...col.tasks];
+                    newTasks.splice(newIndex, 0, activeTask!);
+                    return { ...col, tasks: newTasks };
+                }
+                return col;
+            }),
+        );
     };
 
     const handleDragEnd = (event: DragEndEvent) => {
@@ -111,47 +125,74 @@ function useKanbanDnd(initialBoard: BoardData) {
 
         // === Перемещение задач ===
         if (type === 'task') {
-            const overCol = columns.find(c => getColumnDndId(c.id) === overId) ||
-                columns.find(c => c.tasks.some(t => getTaskDndId(t.id) === overId));
+            const overCol =
+                columns.find((c) => getColumnDndId(c.id) === overId) ||
+                columns.find((c) =>
+                    c.tasks.some((t) => getTaskDndId(t.id) === overId),
+                );
 
             if (overCol) {
                 const tasksInCol = overCol.tasks;
-                const oldIndex = tasksInCol.findIndex(t => getTaskDndId(t.id) === activeId);
-                const newIndex = tasksInCol.findIndex(t => getTaskDndId(t.id) === overId);
-                const reorderedTasks = arrayMove(tasksInCol, oldIndex, newIndex === -1 ? tasksInCol.length : newIndex);
+                const oldIndex = tasksInCol.findIndex(
+                    (t) => getTaskDndId(t.id) === activeId,
+                );
+                const newIndex = tasksInCol.findIndex(
+                    (t) => getTaskDndId(t.id) === overId,
+                );
+                const reorderedTasks = arrayMove(
+                    tasksInCol,
+                    oldIndex,
+                    newIndex === -1 ? tasksInCol.length : newIndex,
+                );
 
-                updateColumns(columns.map(c =>
-                    c.id === overCol.id ? { ...c, tasks: reorderedTasks } : c
-                ));
+                updateColumns(
+                    columns.map((c) =>
+                        c.id === overCol.id
+                            ? { ...c, tasks: reorderedTasks }
+                            : c,
+                    ),
+                );
 
-                router.patch(tasksRoute.move(originalId).url, {
-                    column_id: overCol.id,
-                    task_ids: reorderedTasks.map(t => t.id),
-                }, {
-                    preserveScroll: true,
-                    onSuccess: (page) => setBoard(page.props.board as BoardData),
-                    onError: () => setBoard(initialBoard),
-                });
+                router.patch(
+                    tasksRoute.move(originalId).url,
+                    {
+                        column_id: overCol.id,
+                        task_ids: reorderedTasks.map((t) => t.id),
+                    },
+                    {
+                        preserveScroll: true,
+                        onSuccess: (page) =>
+                            setBoard(page.props.board as BoardData),
+                        onError: () => setBoard(initialBoard),
+                    },
+                );
             }
         }
 
         // === Перемещение колонок ===
         else if (type === 'column') {
-            const oldIndex = columns.findIndex(c => c.id === originalId);
-            const newIndex = columns.findIndex(c => c.id === parseDndId(overId).originalId);
+            const oldIndex = columns.findIndex((c) => c.id === originalId);
+            const newIndex = columns.findIndex(
+                (c) => c.id === parseDndId(overId).originalId,
+            );
 
             if (oldIndex !== newIndex && newIndex !== -1) {
                 const reorderedColumns = arrayMove(columns, oldIndex, newIndex);
 
-                updateColumnOrder(reorderedColumns.map(c => c.id));
+                updateColumnOrder(reorderedColumns.map((c) => c.id));
 
-                router.patch(`/columns/${originalId}/move`, {
-                    position: newIndex,
-                }, {
-                    preserveScroll: true,
-                    onSuccess: (page) => setBoard(page.props.board as BoardData),
-                    onError: () => setBoard(initialBoard),
-                });
+                router.patch(
+                    `/columns/${originalId}/move`,
+                    {
+                        position: newIndex,
+                    },
+                    {
+                        preserveScroll: true,
+                        onSuccess: (page) =>
+                            setBoard(page.props.board as BoardData),
+                        onError: () => setBoard(initialBoard),
+                    },
+                );
             }
         }
 
@@ -190,7 +231,8 @@ export default function Show({ board: initialBoard }: { board: BoardData }) {
     if (!board) return null;
 
     const isAdmin =
-        board.users?.find((u) => u.id === auth.user.id)?.pivot?.role === 'admin';
+        board.users?.find((u) => u.id === auth.user.id)?.pivot?.role ===
+        'admin';
 
     const handleAddTask = (colId: number) => {
         setCurrentColumnId(colId);
@@ -206,10 +248,10 @@ export default function Show({ board: initialBoard }: { board: BoardData }) {
         >
             <Head title={board.title} />
 
-            <div className="flex h-full flex-col p-6 overflow-hidden">
-                <div className="flex items-center justify-between mb-6">
+            <div className="flex h-full flex-col overflow-hidden p-6">
+                <div className="mb-6 flex items-center justify-between">
                     <h1
-                        className="text-2xl font-bold tracking-tight cursor-pointer hover:text-primary transition-colors"
+                        className="cursor-pointer text-2xl font-bold tracking-tight transition-colors hover:text-primary"
                         onClick={() => isAdmin && setIsRenameOpen(true)}
                     >
                         {board.title}
@@ -218,7 +260,11 @@ export default function Show({ board: initialBoard }: { board: BoardData }) {
                     <div className="flex items-center gap-2">
                         {isAdmin && (
                             <>
-                                <Button variant="outline" size="sm" onClick={() => setIsUsersDialogOpen(true)}>
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => setIsUsersDialogOpen(true)}
+                                >
                                     <Users className="mr-2 h-4 w-4" /> Участники
                                 </Button>
 
@@ -229,13 +275,19 @@ export default function Show({ board: initialBoard }: { board: BoardData }) {
                                         </Button>
                                     </DropdownMenuTrigger>
                                     <DropdownMenuContent align="end">
-                                        <DropdownMenuItem onClick={() => setIsRenameOpen(true)}>
+                                        <DropdownMenuItem
+                                            onClick={() =>
+                                                setIsRenameOpen(true)
+                                            }
+                                        >
                                             Переименовать
                                         </DropdownMenuItem>
                                         <DropdownMenuSeparator />
                                         <DropdownMenuItem
                                             className="text-destructive focus:text-destructive"
-                                            onClick={() => setIsDeleteOpen(true)}
+                                            onClick={() =>
+                                                setIsDeleteOpen(true)
+                                            }
                                         >
                                             Удалить доску
                                         </DropdownMenuItem>
@@ -246,14 +298,14 @@ export default function Show({ board: initialBoard }: { board: BoardData }) {
                     </div>
                 </div>
 
-                <div className="flex-1 overflow-x-auto pb-4 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+                <div className="flex-1 overflow-x-auto pb-4 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                     <DndContext
                         collisionDetection={closestCorners}
                         onDragStart={handleDragStart}
                         onDragOver={handleDragOver}
                         onDragEnd={handleDragEnd}
                     >
-                        <div className="flex gap-4 h-full items-start">
+                        <div className="flex h-full items-start gap-4">
                             <SortableContext
                                 items={columns.map((c) => getColumnDndId(c.id))}
                                 strategy={horizontalListSortingStrategy}
@@ -263,17 +315,19 @@ export default function Show({ board: initialBoard }: { board: BoardData }) {
                                         key={column.id}
                                         column={column}
                                         tasks={column.tasks.filter(
-                                            (t) => t.id !== activeTask?.id
+                                            (t) => t.id !== activeTask?.id,
                                         )}
                                         getTaskDndId={getTaskDndId}
-                                        onAddTask={() => handleAddTask(column.id)}
+                                        onAddTask={() =>
+                                            handleAddTask(column.id)
+                                        }
                                     />
                                 ))}
                             </SortableContext>
 
                             <button
                                 onClick={() => setIsColumnDialogOpen(true)}
-                                className="flex h-12 w-80 shrink-0 items-center justify-center rounded-xl border-2 border-dashed border-muted-foreground/20 text-sm font-medium text-muted-foreground hover:border-muted-foreground/50 hover:bg-accent/50 transition-all"
+                                className="flex h-12 w-80 shrink-0 items-center justify-center rounded-xl border-2 border-dashed border-muted-foreground/20 text-sm font-medium text-muted-foreground transition-all hover:border-muted-foreground/50 hover:bg-accent/50"
                             >
                                 + Добавить колонку
                             </button>

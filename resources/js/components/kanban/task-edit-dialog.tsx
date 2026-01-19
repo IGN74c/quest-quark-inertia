@@ -8,7 +8,6 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import {
     Select,
     SelectContent,
@@ -16,42 +15,56 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
+import tasksRoute from '@/routes/tasks';
+import { SharedData, Task, type User as UserType } from '@/types';
 import { useForm, usePage } from '@inertiajs/react';
 import { Trash2, User } from 'lucide-react';
-import { SharedData, type User as UserType } from '@/types';
-import tasksRoute from '@/routes/tasks';
 
 interface TaskEditDialogProps {
-    task: any;
+    task: Task;
     boardUsers: UserType[];
     open: boolean;
     onOpenChange: (open: boolean) => void;
 }
 
-export default function TaskEditDialog({ task, boardUsers, open, onOpenChange }: TaskEditDialogProps) {
+export default function TaskEditDialog({
+    task,
+    boardUsers,
+    open,
+    onOpenChange,
+}: TaskEditDialogProps) {
     const { auth } = usePage<SharedData>().props;
 
-    const { data, setData, patch, delete: destroy, processing, errors } = useForm({
+    const {
+        data,
+        setData,
+        patch,
+        delete: destroy,
+        processing,
+        errors,
+    } = useForm({
         title: task.title || '',
         description: task.description || '',
         assignee_id: task.assignee_id ? String(task.assignee_id) : 'none',
     });
 
-    const canDelete = auth.user.id === task.creator_id || auth.user.id === task.board_owner_id;
-
+    const canDelete =
+        auth.user.id === task.creator_id
     const submit = (e: React.FormEvent) => {
         e.preventDefault();
 
         const payload = {
             title: data.title,
             description: data.description,
-            assignee_id: data.assignee_id === 'none' ? null : Number(data.assignee_id),
+            assignee_id:
+                data.assignee_id === 'none' ? null : Number(data.assignee_id),
         };
 
         patch(tasksRoute.update(task.id).url, {
             ...payload,
             onSuccess: () => onOpenChange(false),
-            preserveScroll: true
+            preserveScroll: true,
         } as any);
     };
 
@@ -79,10 +92,16 @@ export default function TaskEditDialog({ task, boardUsers, open, onOpenChange }:
                             <Input
                                 id="title"
                                 value={data.title}
-                                onChange={(e) => setData('title', e.target.value)}
+                                onChange={(e) =>
+                                    setData('title', e.target.value)
+                                }
                                 placeholder="Что нужно сделать?"
                             />
-                            {errors.title && <p className="text-xs text-destructive">{errors.title}</p>}
+                            {errors.title && (
+                                <p className="text-xs text-destructive">
+                                    {errors.title}
+                                </p>
+                            )}
                         </div>
 
                         {/* Описание */}
@@ -91,7 +110,9 @@ export default function TaskEditDialog({ task, boardUsers, open, onOpenChange }:
                             <Textarea
                                 id="description"
                                 value={data.description}
-                                onChange={(e) => setData('description', e.target.value)}
+                                onChange={(e) =>
+                                    setData('description', e.target.value)
+                                }
                                 placeholder="Добавьте деталей..."
                                 className="min-h-[100px]"
                             />
@@ -102,7 +123,9 @@ export default function TaskEditDialog({ task, boardUsers, open, onOpenChange }:
                             <Label>Исполнитель</Label>
                             <Select
                                 value={data.assignee_id}
-                                onValueChange={(value) => setData('assignee_id', value)}
+                                onValueChange={(value) =>
+                                    setData('assignee_id', value)
+                                }
                             >
                                 <SelectTrigger>
                                     <SelectValue placeholder="Назначить пользователя" />
@@ -110,14 +133,20 @@ export default function TaskEditDialog({ task, boardUsers, open, onOpenChange }:
                                 <SelectContent>
                                     <SelectItem value="none">
                                         <span className="flex items-center text-muted-foreground">
-                                            <User className="mr-2 h-4 w-4" /> Без исполнителя
+                                            <User className="mr-2 h-4 w-4" />{' '}
+                                            Без исполнителя
                                         </span>
                                     </SelectItem>
                                     {boardUsers?.map((user) => (
-                                        <SelectItem key={user.id} value={String(user.id)}>
+                                        <SelectItem
+                                            key={user.id}
+                                            value={String(user.id)}
+                                        >
                                             <span className="flex items-center">
                                                 <div className="mr-2 flex h-5 w-5 items-center justify-center rounded-full bg-primary/10 text-[10px]">
-                                                    {user.name.charAt(0).toUpperCase()}
+                                                    {user.name
+                                                        .charAt(0)
+                                                        .toUpperCase()}
                                                 </div>
                                                 {user.name}
                                             </span>
@@ -143,7 +172,11 @@ export default function TaskEditDialog({ task, boardUsers, open, onOpenChange }:
                             )}
                         </div>
                         <div className="flex gap-2">
-                            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+                            <Button
+                                type="button"
+                                variant="outline"
+                                onClick={() => onOpenChange(false)}
+                            >
                                 Отмена
                             </Button>
                             <Button type="submit" disabled={processing}>

@@ -1,7 +1,14 @@
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { router } from '@inertiajs/react';
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from '@/components/ui/dialog';
 import { BoardData } from '@/types';
+import { router } from '@inertiajs/react';
 
 interface BoardDeleteDialogProps {
     board: BoardData;
@@ -9,7 +16,11 @@ interface BoardDeleteDialogProps {
     onOpenChange: (open: boolean) => void;
 }
 
-export default function BoardDeleteDialog({ board, open, onOpenChange }: BoardDeleteDialogProps) {
+export default function BoardDeleteDialog({
+    board,
+    open,
+    onOpenChange,
+}: BoardDeleteDialogProps) {
     const handleDelete = () => {
         router.delete(`/boards/${board.id}`, {
             onSuccess: () => {
@@ -24,11 +35,15 @@ export default function BoardDeleteDialog({ board, open, onOpenChange }: BoardDe
                 <DialogHeader>
                     <DialogTitle>Удалить доску?</DialogTitle>
                     <DialogDescription>
-                        Доска «{board.title}» и все её колонки и задачи будут удалены безвозвратно.
+                        Доска «{board.title}» и все её колонки и задачи будут
+                        удалены безвозвратно.
                     </DialogDescription>
                 </DialogHeader>
                 <DialogFooter>
-                    <Button variant="outline" onClick={() => onOpenChange(false)}>
+                    <Button
+                        variant="outline"
+                        onClick={() => onOpenChange(false)}
+                    >
                         Отмена
                     </Button>
                     <Button variant="destructive" onClick={handleDelete}>
