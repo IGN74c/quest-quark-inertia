@@ -11,8 +11,13 @@ import {
     DragOverEvent,
     DragOverlay,
     DragStartEvent,
+    MouseSensor,
+    PointerSensor,
+    TouchSensor,
     closestCorners,
     defaultDropAnimationSideEffects,
+    useSensor,
+    useSensors,
 } from '@dnd-kit/core';
 import {
     SortableContext,
@@ -221,6 +226,20 @@ export default function Show({ board: initialBoard }: { board: BoardData }) {
     const [isUsersDialogOpen, setIsUsersDialogOpen] = useState(false);
     const [currentColumnId, setCurrentColumnId] = useState<number | null>(null);
 
+    const sensors = useSensors(
+        useSensor(MouseSensor, {
+            activationConstraint: {
+                distance: 5,
+            },
+        }),
+        useSensor(TouchSensor, {
+            activationConstraint: {
+                delay: 240,
+                tolerance: 8,
+            },
+        })
+    );w
+
     useEffect(() => {
         setBoard(initialBoard);
     }, [initialBoard]);
@@ -300,6 +319,7 @@ export default function Show({ board: initialBoard }: { board: BoardData }) {
 
                 <div className="flex-1 overflow-x-auto pb-4 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                     <DndContext
+                        sensors={sensors}
                         collisionDetection={closestCorners}
                         onDragStart={handleDragStart}
                         onDragOver={handleDragOver}
