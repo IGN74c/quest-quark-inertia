@@ -35,7 +35,7 @@ class BoardController extends Controller
     {
         $this->authorize('view', $board);
 
-        return Inertia::render('boards/show', [
+        return Inertia::render('boards/show/index', [
             'board' => $board->load([
                 'users',
                 'columns' => function ($query) {
