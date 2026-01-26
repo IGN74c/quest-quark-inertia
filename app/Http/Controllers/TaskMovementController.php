@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\ColumnMoved;
+use App\Events\TaskMoved;
 use App\Models\Column;
 use App\Models\Task;
 use Illuminate\Http\Request;
@@ -16,11 +18,28 @@ class TaskMovementController extends Controller
             'task_ids' => 'required|array',
         ]);
 
+        $fromColumnId = $task->column_id;
+        $toColumnId = (int) $request->column_id;
+
         if ($task->column_id !== (int) $request->column_id) {
             $task->update(['column_id' => $request->column_id]);
         }
 
         Task::setNewOrder($request->task_ids);
+
+        $task->refresh();
+
+        $fromTaskIds = Task::where('column_id', $fromColumnId)
+            ->orderBy('position')
+            ->pluck('id')
+            ->all();
+
+        $toTaskIds = Task::where('column_id', $toColumnId)
+            ->orderBy('position')
+            ->pluck('id')
+            ->all();
+
+        broadcast(new TaskMoved($task, $fromColumnId, $toColumnId, $fromTaskIds, $toTaskIds))->toOthers();
 
         return back();
     }
@@ -47,6 +66,13 @@ class TaskMovementController extends Controller
                 'position' => $newPosition,
             ]);
         });
+
+        $columnIds = Column::where('board_id', $boardId)
+            ->orderBy('position')
+            ->pluck('id')
+            ->all();
+
+        broadcast(new ColumnMoved($boardId, $columnIds))->toOthers();
 
         return back();
     }

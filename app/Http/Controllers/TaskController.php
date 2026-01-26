@@ -2,6 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\TaskCreated;
+use App\Events\TaskDeleted;
+use App\Events\TaskUpdated;
 use App\Models\Task;
 use App\Models\Column;
 use Illuminate\Http\Request;
@@ -17,6 +20,8 @@ class TaskController extends Controller
     public function store(Request $request, Column $column)
     {
         $this->authorize('update', $column->board);
+
+        $task = null;
 
         if ($request->has('assignee_id') && $request->assignee_id === 'none') {
             $request->merge(['assignee_id' => null]);
@@ -41,6 +46,15 @@ class TaskController extends Controller
                 'position' => 0,
             ]);
         });
+
+        if ($task) {
+            $taskIds = Task::where('column_id', $column->id)
+                ->orderBy('position')
+                ->pluck('id')
+                ->all();
+
+            broadcast(new TaskCreated($task, $taskIds))->toOthers();
+        }
 
         return back()->with('success', 'Задача создана');
     }
@@ -68,6 +82,8 @@ class TaskController extends Controller
             'assignee_id' => $validated['assignee_id'] ?? null,
         ]);
 
+        broadcast(new TaskUpdated($task))->toOthers();
+
         return back()->with('success', 'Задача обновлена');
     }
 
@@ -80,6 +96,8 @@ class TaskController extends Controller
 
         $columnId = $task->column_id;
         $oldPosition = $task->position;
+        $taskId = $task->id;
+        $boardId = $task->column->board_id;
 
         DB::transaction(function () use ($task, $columnId, $oldPosition) {
             $task->delete();
@@ -87,6 +105,14 @@ class TaskController extends Controller
                 ->where('position', '>', $oldPosition)
                 ->decrement('position');
         });
+
+        $taskIds = Task::where('column_id', $columnId)
+            ->orderBy('position')
+            ->pluck('id')
+            ->all();
+
+        broadcast(new TaskDeleted($taskId, $columnId, $boardId, $taskIds))->toOthers();
+
         return back()->with('success', 'Задача удалена');
     }
 

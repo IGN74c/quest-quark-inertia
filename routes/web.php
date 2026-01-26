@@ -4,6 +4,7 @@ use App\Http\Controllers\BoardController;
 use App\Http\Controllers\ColumnController;
 use App\Http\Controllers\TaskController;
 use App\Http\Controllers\TaskMovementController;
+use Illuminate\Support\Facades\Broadcast;
 use Illuminate\Support\Facades\Route;
 use Laravel\Fortify\Features;
 use Inertia\Inertia;
@@ -13,6 +14,8 @@ Route::get('/', function () {
         'canRegister' => Features::enabled(Features::registration()),
     ]);
 })->name('home');
+
+Broadcast::routes(['middleware' => ['auth']]);
 
 Route::middleware(['auth'])->group(function () {
     Route::get('dashboard', [BoardController::class, 'index'])->name('dashboard');

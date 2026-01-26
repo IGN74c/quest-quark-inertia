@@ -2,6 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\ColumnCreated;
+use App\Events\ColumnDeleted;
+use App\Events\ColumnUpdated;
 use App\Models\Board;
 use App\Models\Column;
 use Illuminate\Http\Request;
@@ -22,10 +25,12 @@ class ColumnController extends Controller
 
         $maxPosition = $board->columns()->max('position') ?? -1;
 
-        $board->columns()->create([
+        $column = $board->columns()->create([
             'title' => $validated['title'],
             'position' => $maxPosition + 1,
         ]);
+
+        broadcast(new ColumnCreated($column))->toOthers();
 
         return back();
     }
@@ -43,6 +48,8 @@ class ColumnController extends Controller
 
         $column->update($validated);
 
+        broadcast(new ColumnUpdated($column))->toOthers();
+
         return back();
     }
 
@@ -52,6 +59,9 @@ class ColumnController extends Controller
     public function destroy(Column $column)
     {
         $this->authorize('update', $column->board);
+
+        $columnId = $column->id;
+        $boardId = $column->board_id;
 
         DB::transaction(function () use ($column) {
             $board = $column->board;
@@ -65,6 +75,13 @@ class ColumnController extends Controller
                 ->where('position', '>', $deletedPosition)
                 ->decrement('position');
         });
+
+        $columnIds = Column::where('board_id', $boardId)
+            ->orderBy('position')
+            ->pluck('id')
+            ->all();
+
+        broadcast(new ColumnDeleted($columnId, $boardId, $columnIds))->toOthers();
 
         return back();
     }

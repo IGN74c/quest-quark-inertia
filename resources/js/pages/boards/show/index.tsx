@@ -13,6 +13,7 @@ import BoardUsersDialog from './components/dialogs/board-users-dialog';
 import ColumnCreateDialog from './components/dialogs/column-create-dialog';
 import TaskCreateDialog from './components/dialogs/task-create-dialog';
 import { useBoardModals } from './hooks/useBoardModals';
+import { useBoardEvents } from './hooks/useBoardEvents';
 
 type ShowProps = {
     board: BoardData;
@@ -23,6 +24,7 @@ export default function Show({ board: initialBoard }: ShowProps) {
     const { board, setBoard } = useBoardStore();
 
     const modals = useBoardModals();
+    useBoardEvents(initialBoard.id);
 
     useEffect(() => {
         setBoard(initialBoard);

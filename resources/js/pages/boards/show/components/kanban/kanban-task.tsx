@@ -24,7 +24,7 @@ export default function KanbanTask({ task }: { task: Task }) {
 
     const style = {
         transform: CSS.Translate.toString(transform),
-        transition,
+        transition: transition ?? (isDragging ? undefined : 'transform 220ms ease'),
     };
 
     if (isDragging) {
@@ -42,7 +42,7 @@ export default function KanbanTask({ task }: { task: Task }) {
             <div
                 ref={setNodeRef}
                 style={style}
-                className="group relative flex cursor-grab flex-col gap-3 rounded-lg border bg-card p-3 shadow-sm transition-all hover:border-primary/50 hover:shadow-md active:cursor-grabbing"
+                className="group relative flex cursor-grab flex-col gap-3 rounded-lg border bg-card p-3 shadow-sm transition-all duration-200 hover:border-primary/50 hover:shadow-md active:cursor-grabbing"
                 {...attributes}
                 {...listeners}
                 onClick={(e) => {
