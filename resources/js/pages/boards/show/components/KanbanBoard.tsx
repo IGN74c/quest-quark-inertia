@@ -15,10 +15,10 @@ import {
 
 import { BoardData } from '@/types';
 
-import KanbanColumn from '@/components/kanban/kanban-column';
-import KanbanTask from '@/components/kanban/kanban-task';
 import { useBoardStore } from '@/stores/use-board-store';
 
+import KanbanColumn from './kanban/kanban-column';
+import KanbanTask from './kanban/kanban-task';
 import { useKanbanDnd } from '../hooks/useKanbanDnd';
 import { getColumnDndId, getTaskDndId } from '../utils/dndUtils';
 

@@ -5,14 +5,13 @@ import AppLayout from '@/layouts/app-layout';
 import { useBoardStore } from '@/stores/use-board-store';
 import { BoardData, SharedData } from '@/types';
 
-import BoardDeleteDialog from '@/components/board/board-delete-dialog';
-import BoardRenameDialog from '@/components/board/board-rename-dialog';
-import BoardUsersDialog from '@/components/board/board-users-dialog';
-import ColumnCreateDialog from '@/components/kanban/column-create-dialog';
-import TaskCreateDialog from '@/components/kanban/task-create-dialog';
-
 import { BoardHeader } from './components/BoardHeader';
 import { KanbanBoard } from './components/KanbanBoard';
+import BoardDeleteDialog from './components/dialogs/board-delete-dialog';
+import BoardRenameDialog from './components/dialogs/board-rename-dialog';
+import BoardUsersDialog from './components/dialogs/board-users-dialog';
+import ColumnCreateDialog from './components/dialogs/column-create-dialog';
+import TaskCreateDialog from './components/dialogs/task-create-dialog';
 import { useBoardModals } from './hooks/useBoardModals';
 
 type ShowProps = {

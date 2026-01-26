@@ -1,10 +1,10 @@
-import AppHeroImage from '@/components/home/hero-image';
 import { Button } from '@/components/ui/button';
 import AppLayout from '@/layouts/home-layout';
 import { dashboard, login, register } from '@/routes';
 import { SharedData } from '@/types';
 import { Head, Link, usePage } from '@inertiajs/react';
 import { ArrowRight, Quote } from 'lucide-react';
+import AppHeroImage from './welcome/components/hero-image';
 
 export default function Welcome({
     canRegister = true,
