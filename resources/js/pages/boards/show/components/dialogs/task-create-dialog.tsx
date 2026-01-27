@@ -15,7 +15,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
-import { Textarea } from '@/components/ui/textarea';
+import RichTextEditor from '@/components/ui/rich-text-editor';
 import { useBoardStore } from '@/stores/use-board-store';
 import { useForm } from '@inertiajs/react';
 import { User } from 'lucide-react';
@@ -56,7 +56,7 @@ export default function TaskCreateDialog({
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="sm:max-w-[425px]">
+            <DialogContent className="sm:max-w-[425px] max-h-[80vh] overflow-y-auto">
                 <form onSubmit={submit}>
                     <DialogHeader>
                         <DialogTitle>Новая задача</DialogTitle>
@@ -83,11 +83,11 @@ export default function TaskCreateDialog({
 
                         <div className="space-y-2">
                             <Label htmlFor="create-description">Описание</Label>
-                            <Textarea
+                            <RichTextEditor
                                 id="create-description"
                                 value={data.description}
-                                onChange={(e) =>
-                                    setData('description', e.target.value)
+                                onChange={(value) =>
+                                    setData('description', value)
                                 }
                                 placeholder="Добавьте подробностей..."
                             />

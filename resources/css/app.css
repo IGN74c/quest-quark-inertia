@@ -141,3 +141,41 @@
         @apply bg-background text-foreground;
     }
 }
+
+.tiptap-editor__content {
+    @apply min-h-[120px] w-full p-3 text-sm leading-6 outline-none;
+}
+
+.tiptap-editor__content p.is-editor-empty:first-child::before {
+    content: attr(data-placeholder);
+    @apply pointer-events-none float-left h-0 text-muted-foreground;
+}
+
+.tiptap-editor__content > * + * {
+    margin-top: 0.75rem;
+}
+
+.tiptap-editor__content ul,
+.tiptap-editor__content ol {
+    padding-left: 1.25rem;
+}
+
+.tiptap-editor__content ul {
+    list-style: disc;
+}
+
+.tiptap-editor__content ol {
+    list-style: decimal;
+}
+
+.tiptap-editor__content blockquote {
+    @apply border-l-2 border-border pl-3 text-muted-foreground;
+}
+
+.tiptap-editor__content code {
+    @apply rounded bg-muted px-1 py-0.5 font-mono text-[0.85em];
+}
+
+.tiptap-editor__content a {
+    @apply text-primary underline underline-offset-4;
+}
