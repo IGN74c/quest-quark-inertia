@@ -12,8 +12,8 @@ import BoardRenameDialog from './components/dialogs/board-rename-dialog';
 import BoardUsersDialog from './components/dialogs/board-users-dialog';
 import ColumnCreateDialog from './components/dialogs/column-create-dialog';
 import TaskCreateDialog from './components/dialogs/task-create-dialog';
-import { useBoardModals } from './hooks/useBoardModals';
 import { useBoardEvents } from './hooks/useBoardEvents';
+import { useBoardModals } from './hooks/useBoardModals';
 
 type ShowProps = {
     board: BoardData;

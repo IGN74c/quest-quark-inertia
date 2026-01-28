@@ -83,7 +83,8 @@ export default function KanbanColumn({
 
     const style = {
         transform: CSS.Transform.toString(transform),
-        transition: transition ?? (isDragging ? undefined : 'transform 220ms ease'),
+        transition:
+            transition ?? (isDragging ? undefined : 'transform 220ms ease'),
         opacity: isDragging ? 0.5 : 1,
     };
 

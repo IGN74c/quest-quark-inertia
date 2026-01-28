@@ -178,7 +178,10 @@ export const useBoardStore = create<BoardState>((set) => ({
                 }
 
                 const updatedTasks = [...col.tasks];
-                updatedTasks[taskIndex] = { ...updatedTasks[taskIndex], ...task };
+                updatedTasks[taskIndex] = {
+                    ...updatedTasks[taskIndex],
+                    ...task,
+                };
 
                 return {
                     ...col,
@@ -230,10 +233,7 @@ export const useBoardStore = create<BoardState>((set) => ({
                         );
                         return {
                             ...col,
-                            tasks: orderTasksByIds(
-                                remainingTasks,
-                                fromTaskIds,
-                            ),
+                            tasks: orderTasksByIds(remainingTasks, fromTaskIds),
                         };
                     }
 

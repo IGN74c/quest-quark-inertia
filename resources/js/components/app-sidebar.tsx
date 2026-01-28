@@ -10,11 +10,12 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
+import { getBoardIcon } from '@/lib/board-icons';
 import { dashboard } from '@/routes';
 import boards from '@/routes/boards';
 import { SharedData, type NavItem } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
-import { Layout, LayoutGrid } from 'lucide-react';
+import { LayoutGrid } from 'lucide-react';
 import AppLogo from './app-logo';
 
 const mainNavItems: NavItem[] = [
@@ -33,7 +34,7 @@ export function AppSidebar() {
     const boardNavItems: NavItem[] = auth.boards.map((board) => ({
         title: board.title,
         href: boards.show(board.id),
-        icon: Layout,
+        icon: getBoardIcon(board.icon),
     }));
     return (
         <Sidebar collapsible="icon" variant="inset">

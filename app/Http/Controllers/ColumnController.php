@@ -5,30 +5,20 @@ namespace App\Http\Controllers;
 use App\Events\ColumnCreated;
 use App\Events\ColumnDeleted;
 use App\Events\ColumnUpdated;
+use App\Http\Requests\ColumnStoreRequest;
+use App\Http\Requests\ColumnUpdateRequest;
 use App\Models\Board;
 use App\Models\Column;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
+use App\Services\ColumnService;
 
 class ColumnController extends Controller
 {
     /**
      * Создание новой колонки.
      */
-    public function store(Request $request, Board $board)
+    public function store(ColumnStoreRequest $request, Board $board, ColumnService $columnService)
     {
-        $this->authorize('update', $board);
-
-        $validated = $request->validate([
-            'title' => 'required|string|max:255',
-        ]);
-
-        $maxPosition = $board->columns()->max('position') ?? -1;
-
-        $column = $board->columns()->create([
-            'title' => $validated['title'],
-            'position' => $maxPosition + 1,
-        ]);
+        $column = $columnService->createColumn($board, $request->validated());
 
         broadcast(new ColumnCreated($column))->toOthers();
 
@@ -38,15 +28,9 @@ class ColumnController extends Controller
     /**
      * Обновление заголовка колонки.
      */
-    public function update(Request $request, Column $column)
+    public function update(ColumnUpdateRequest $request, Column $column, ColumnService $columnService)
     {
-        $this->authorize('update', $column->board);
-
-        $validated = $request->validate([
-            'title' => 'required|string|max:255',
-        ]);
-
-        $column->update($validated);
+        $column = $columnService->updateColumn($column, $request->validated());
 
         broadcast(new ColumnUpdated($column))->toOthers();
 
@@ -56,32 +40,13 @@ class ColumnController extends Controller
     /**
      * Удаление колонки и всех её задач.
      */
-    public function destroy(Column $column)
+    public function destroy(Column $column, ColumnService $columnService)
     {
         $this->authorize('update', $column->board);
 
-        $columnId = $column->id;
-        $boardId = $column->board_id;
+        $result = $columnService->deleteColumn($column);
 
-        DB::transaction(function () use ($column) {
-            $board = $column->board;
-            $deletedPosition = $column->position;
-
-            $column->tasks()->delete();
-
-            $column->delete();
-
-            $board->columns()
-                ->where('position', '>', $deletedPosition)
-                ->decrement('position');
-        });
-
-        $columnIds = Column::where('board_id', $boardId)
-            ->orderBy('position')
-            ->pluck('id')
-            ->all();
-
-        broadcast(new ColumnDeleted($columnId, $boardId, $columnIds))->toOthers();
+        broadcast(new ColumnDeleted($result['columnId'], $result['boardId'], $result['columnIds']))->toOthers();
 
         return back();
     }

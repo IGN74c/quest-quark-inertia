@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Board extends Model
 {
-    protected $fillable = ['title', 'user_id'];
+    protected $fillable = ['title', 'icon', 'user_id'];
 
     // Создатель (владелец) доски
     public function owner(): BelongsTo

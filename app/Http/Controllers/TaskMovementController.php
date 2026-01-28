@@ -4,75 +4,38 @@ namespace App\Http\Controllers;
 
 use App\Events\ColumnMoved;
 use App\Events\TaskMoved;
+use App\Http\Requests\ColumnMoveRequest;
+use App\Http\Requests\TaskMoveRequest;
 use App\Models\Column;
 use App\Models\Task;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
+use App\Services\TaskMovementService;
 
 class TaskMovementController extends Controller
 {
-    public function move(Request $request, Task $task)
+    public function move(TaskMoveRequest $request, Task $task, TaskMovementService $taskMovementService)
     {
-        $request->validate([
-            'column_id' => 'required|exists:columns,id',
-            'task_ids' => 'required|array',
-        ]);
+        $result = $taskMovementService->moveTask($task, $request->validated());
 
-        $fromColumnId = $task->column_id;
-        $toColumnId = (int) $request->column_id;
-
-        if ($task->column_id !== (int) $request->column_id) {
-            $task->update(['column_id' => $request->column_id]);
-        }
-
-        Task::setNewOrder($request->task_ids);
-
-        $task->refresh();
-
-        $fromTaskIds = Task::where('column_id', $fromColumnId)
-            ->orderBy('position')
-            ->pluck('id')
-            ->all();
-
-        $toTaskIds = Task::where('column_id', $toColumnId)
-            ->orderBy('position')
-            ->pluck('id')
-            ->all();
-
-        broadcast(new TaskMoved($task, $fromColumnId, $toColumnId, $fromTaskIds, $toTaskIds))->toOthers();
+        broadcast(new TaskMoved(
+            $result['task'],
+            $result['fromColumnId'],
+            $result['toColumnId'],
+            $result['fromTaskIds'],
+            $result['toTaskIds']
+        ))->toOthers();
 
         return back();
     }
-    public function moveColumn(Request $request, Column $column)
+
+    public function moveColumn(
+        ColumnMoveRequest $request,
+        Column $column,
+        TaskMovementService $taskMovementService
+    )
     {
-        $validated = $request->validate([
-            'position' => 'required|integer|min:0',
-        ]);
+        $result = $taskMovementService->moveColumn($column, $request->validated()['position']);
 
-        $oldPosition = $column->position;
-        $newPosition = $validated['position'];
-        $boardId = $column->board_id;
-
-        DB::transaction(function () use ($column, $boardId, $oldPosition, $newPosition) {
-            Column::where('board_id', $boardId)
-                ->where('position', '>', $oldPosition)
-                ->decrement('position');
-
-            Column::where('board_id', $boardId)
-                ->where('position', '>=', $newPosition)
-                ->increment('position');
-
-            $column->update([
-                'position' => $newPosition,
-            ]);
-        });
-
-        $columnIds = Column::where('board_id', $boardId)
-            ->orderBy('position')
-            ->pluck('id')
-            ->all();
-
-        broadcast(new ColumnMoved($boardId, $columnIds))->toOthers();
+        broadcast(new ColumnMoved($result['boardId'], $result['columnIds']))->toOthers();
 
         return back();
     }

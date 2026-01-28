@@ -24,7 +24,8 @@ export default function KanbanTask({ task }: { task: Task }) {
 
     const style = {
         transform: CSS.Translate.toString(transform),
-        transition: transition ?? (isDragging ? undefined : 'transform 220ms ease'),
+        transition:
+            transition ?? (isDragging ? undefined : 'transform 220ms ease'),
     };
 
     if (isDragging) {

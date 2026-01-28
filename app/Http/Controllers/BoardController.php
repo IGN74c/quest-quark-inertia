@@ -1,33 +1,27 @@
 <?php
 namespace App\Http\Controllers;
 
+use App\Http\Requests\BoardInviteRequest;
+use App\Http\Requests\BoardRemoveUserRequest;
+use App\Http\Requests\BoardStoreRequest;
+use App\Http\Requests\BoardUpdateRequest;
+use App\Http\Requests\BoardUpdateUserRoleRequest;
 use App\Models\Board;
 use App\Models\User;
+use App\Services\BoardService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class BoardController extends Controller
 {
-    public function index(Request $request)
+    public function index(Request $request, BoardService $boardService)
     {
-        $user = $request->user();
-
-        $boards = $user->boards()
-            ->with(['users', 'columns.tasks'])
-            ->get();
-
-        $totalTasks = $boards->sum(fn($board) => $board->columns->sum(fn($col) => $col->tasks->count()));
-
-        $totalMembers = $boards->pluck('users')->flatten()->unique('id')->count();
+        $data = $boardService->getDashboardData($request->user());
 
         return Inertia::render('dashboard', [
-            'boards' => $boards,
-            'stats' => [
-                'total_boards' => $boards->count(),
-                'total_tasks' => $totalTasks,
-                'total_members' => $totalMembers,
-            ]
+            'boards' => $data['boards'],
+            'stats' => $data['stats'],
         ]);
     }
 
@@ -49,92 +43,59 @@ class BoardController extends Controller
         ]);
     }
 
-    public function store(Request $request)
+    public function store(BoardStoreRequest $request, BoardService $boardService)
     {
-        $validated = $request->validate([
-            'title' => 'required|string|max:255',
-        ]);
-
-        $board = Board::create([
-            'title' => $validated['title'],
-            'user_id' => $request->user()->id,
-        ]);
-
-        $board->users()->attach($request->user()->id, ['role' => 'admin']);
+        $board = $boardService->createBoard($request->user(), $request->validated());
 
         return redirect()->route('boards.show', $board->id);
     }
 
-    public function update(Request $request, Board $board)
+    public function update(BoardUpdateRequest $request, Board $board, BoardService $boardService)
     {
-        $this->authorize('update', $board);
-
-        $validated = $request->validate([
-            'title' => 'required|string|max:255',
-        ]);
-
-        $board->update($validated);
+        $boardService->updateBoard($board, $request->validated());
 
         return back();
     }
 
-    public function destroy(Board $board)
+    public function destroy(Board $board, BoardService $boardService)
     {
         $this->authorize('delete', $board);
 
-        $board->delete();
+        $boardService->deleteBoard($board);
 
         return redirect()->route('dashboard');
     }
 
-    public function invite(Request $request, Board $board)
+    public function invite(BoardInviteRequest $request, Board $board, BoardService $boardService)
     {
-        $this->authorize('update', $board);
-
-        $validated = $request->validate([
-            'email' => 'required|email|exists:users,email',
-        ]);
-
-        $userToInvite = User::where('email', $validated['email'])->first();
-
-        $board->users()->syncWithoutDetaching([$userToInvite->id => ['role' => 'editor']]);
+        $boardService->inviteUser($board, $request->validated()['email']);
 
         return back();
     }
 
-    public function updateUserRole(Request $request, Board $board, User $user)
+    public function updateUserRole(
+        BoardUpdateUserRoleRequest $request,
+        Board $board,
+        User $user,
+        BoardService $boardService
+    )
     {
-        $this->authorizeAdmin($board);
-
-        $request->validate(['role' => 'required|in:editor,viewer']);
-
-        $board->users()->updateExistingPivot($user->id, ['role' => $request->role]);
+        $boardService->updateUserRole($board, $user, $request->validated()['role']);
 
         return back();
     }
 
-    public function removeUser(Board $board, User $user)
+    public function removeUser(
+        BoardRemoveUserRequest $request,
+        Board $board,
+        User $user,
+        BoardService $boardService
+    )
     {
-        $this->authorizeAdmin($board);
-
-        if ($user->id === auth()->id()) {
+        if (!$boardService->removeUser($board, $user, $request->user())) {
             return back()->withErrors(['error' => 'Вы не можете удалить себя из доски']);
         }
 
-        $board->users()->detach($user->id);
-
         return back();
-    }
-
-    private function authorizeAdmin(Board $board)
-    {
-        $isAdmin = $board->users()
-            ->where('user_id', auth()->id())
-            ->where('role', 'admin')
-            ->exists();
-
-        if (!$isAdmin) {
-            abort(403, 'У вас нет прав администратора');
-        }
     }
 }

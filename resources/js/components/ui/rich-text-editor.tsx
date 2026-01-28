@@ -80,7 +80,7 @@ export default function RichTextEditor({
 
     return (
         <div className={cn('tiptap-editor space-y-2', className)}>
-            <div className="flex flex-wrap gap-1 rounded-md border bg-muted/30 p-1">
+            <div className="flex flex-wrap gap-1 rounded-md border p-1">
                 <Button
                     type="button"
                     variant="ghost"

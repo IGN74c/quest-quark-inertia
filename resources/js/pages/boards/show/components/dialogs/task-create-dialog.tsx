@@ -8,6 +8,7 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import RichTextEditor from '@/components/ui/rich-text-editor';
 import {
     Select,
     SelectContent,
@@ -15,7 +16,6 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
-import RichTextEditor from '@/components/ui/rich-text-editor';
 import { useBoardStore } from '@/stores/use-board-store';
 import { useForm } from '@inertiajs/react';
 import { User } from 'lucide-react';
@@ -56,7 +56,7 @@ export default function TaskCreateDialog({
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="sm:max-w-[425px] max-h-[80vh] overflow-y-auto">
+            <DialogContent className="h-[100dvh] max-h-[100dvh] w-full overflow-y-auto rounded-none p-4 sm:h-auto sm:max-h-[85vh] sm:max-w-2xl sm:rounded-lg sm:p-6">
                 <form onSubmit={submit}>
                     <DialogHeader>
                         <DialogTitle>Новая задача</DialogTitle>

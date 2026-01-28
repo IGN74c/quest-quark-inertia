@@ -16,6 +16,7 @@ export interface User {
 export interface Board {
     id: number;
     title: string;
+    icon?: string;
     user_id: number;
     created_at: string;
     updated_at: string;

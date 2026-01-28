@@ -86,7 +86,13 @@ export function useBoardEvents(boardId: number) {
     useEcho<TaskMovedPayload>(
         channel,
         '.task.moved',
-        ({ task, from_column_id, to_column_id, from_task_ids, to_task_ids }) => {
+        ({
+            task,
+            from_column_id,
+            to_column_id,
+            from_task_ids,
+            to_task_ids,
+        }) => {
             moveTask({
                 task,
                 fromColumnId: from_column_id,

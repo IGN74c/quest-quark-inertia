@@ -11,6 +11,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import AppLayout from '@/layouts/app-layout';
+import { boardIcons, getBoardIcon } from '@/lib/board-icons';
 import boardsRoute from '@/routes/boards';
 import { User, type BreadcrumbItem } from '@/types';
 import { Head, Link, useForm } from '@inertiajs/react';
@@ -20,6 +21,7 @@ import { useState } from 'react';
 interface Board {
     id: number;
     title: string;
+    icon?: string;
     pivot?: { role: string };
     columns: Array<{ tasks: Task[] }>;
     users: User[];
@@ -47,6 +49,7 @@ export default function Dashboard({ boards = [], stats }: DashboardProps) {
 
     const { data, setData, post, reset, errors, processing } = useForm({
         title: '',
+        icon: boardIcons[0]?.value ?? 'layout-grid',
     });
     const inviteForm = useForm({ email: '' });
 
@@ -144,6 +147,7 @@ export default function Dashboard({ boards = [], stats }: DashboardProps) {
 
                 <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                     {boards.map((board) => {
+                        const BoardIcon = getBoardIcon(board.icon);
                         const totalTasks = board.columns.reduce(
                             (sum, col) => sum + col.tasks.length,
                             0,
@@ -161,9 +165,12 @@ export default function Dashboard({ boards = [], stats }: DashboardProps) {
 
                                 <div className="relative aspect-video p-6">
                                     <div className="mb-8 flex items-start justify-between">
-                                        <h3 className="relative z-20 text-lg font-bold text-card-foreground">
-                                            {board.title}
-                                        </h3>
+                                        <div className="relative z-20 flex items-center gap-2 text-lg font-bold text-card-foreground">
+                                            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-muted/70">
+                                                <BoardIcon className="h-4 w-4" />
+                                            </span>
+                                            <span>{board.title}</span>
+                                        </div>
                                         {board.pivot?.role === 'admin' && (
                                             <Button
                                                 variant="ghost"
@@ -245,6 +252,39 @@ export default function Dashboard({ boards = [], stats }: DashboardProps) {
                                     {errors.title}
                                 </p>
                             )}
+                            <div className="space-y-2 pt-2">
+                                <Label>Иконка</Label>
+                                <div className="grid grid-cols-5 gap-2">
+                                    {boardIcons.map((icon) => {
+                                        const Icon = icon.icon;
+                                        const isActive =
+                                            data.icon === icon.value;
+                                        return (
+                                            <button
+                                                key={icon.value}
+                                                type="button"
+                                                onClick={() =>
+                                                    setData('icon', icon.value)
+                                                }
+                                                className={`flex h-16 flex-col items-center justify-center gap-1 rounded-lg border text-xs transition ${
+                                                    isActive
+                                                        ? 'border-primary bg-primary/10 text-primary'
+                                                        : 'border-muted hover:border-muted-foreground/50 hover:bg-accent/50'
+                                                }`}
+                                                aria-pressed={isActive}
+                                            >
+                                                <Icon className="h-5 w-5" />
+                                                <span>{icon.label}</span>
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                                {errors.icon && (
+                                    <p className="text-sm text-destructive">
+                                        {errors.icon}
+                                    </p>
+                                )}
+                            </div>
                         </div>
                         <DialogFooter>
                             <Button type="submit" disabled={processing}>

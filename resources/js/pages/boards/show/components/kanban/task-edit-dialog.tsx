@@ -8,6 +8,7 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import RichTextEditor from '@/components/ui/rich-text-editor';
 import {
     Select,
     SelectContent,
@@ -15,7 +16,6 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
-import RichTextEditor from '@/components/ui/rich-text-editor';
 import tasksRoute from '@/routes/tasks';
 import { SharedData, Task, type User as UserType } from '@/types';
 import { useForm, usePage } from '@inertiajs/react';
@@ -86,7 +86,7 @@ export default function TaskEditDialog({
     return (
         <>
             <Dialog open={open} onOpenChange={onOpenChange}>
-                <DialogContent className="sm:max-w-[425px] max-h-[80vh] overflow-y-auto">
+                <DialogContent className="h-[100dvh] max-h-[100dvh] w-full overflow-y-auto rounded-none p-4 sm:h-auto sm:max-h-[85vh] sm:max-w-2xl sm:rounded-lg sm:p-6">
                     <form onSubmit={submit}>
                         <DialogHeader>
                             <DialogTitle>Редактирование задачи</DialogTitle>
@@ -94,7 +94,7 @@ export default function TaskEditDialog({
 
                         <div className="grid gap-4 py-4">
                             {/* Название */}
-                            <div className="space-y-2">
+                            <div className="space-y-4">
                                 <Label htmlFor="title">Название</Label>
                                 <Input
                                     id="title"
@@ -198,7 +198,7 @@ export default function TaskEditDialog({
                 open={isDeleteDialogOpen}
                 onOpenChange={setIsDeleteDialogOpen}
             >
-                <DialogContent className="sm:max-w-[420px] max-h-[80vh] overflow-y-auto">
+                <DialogContent className="max-h-[80vh] overflow-y-auto sm:max-w-[420px]">
                     <DialogHeader>
                         <DialogTitle>Удалить задачу?</DialogTitle>
                     </DialogHeader>
