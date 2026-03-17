@@ -38,7 +38,7 @@ class ColumnController extends Controller
     }
 
     /**
-     * Удаление колонки и всех её задач.
+     * Удаление колонки с переносом её задач.
      */
     public function destroy(Column $column, ColumnService $columnService)
     {
@@ -46,7 +46,12 @@ class ColumnController extends Controller
 
         $result = $columnService->deleteColumn($column);
 
-        broadcast(new ColumnDeleted($result['columnId'], $result['boardId'], $result['columnIds']))->toOthers();
+        broadcast(new ColumnDeleted(
+            $result['columnId'],
+            $result['boardId'],
+            $result['columnIds'],
+            $result['destinationColumn'],
+        ))->toOthers();
 
         return back();
     }

@@ -4,10 +4,13 @@ namespace App\Services;
 
 use App\Models\Board;
 use App\Models\Column;
+use App\Models\Task;
 use Illuminate\Support\Facades\DB;
 
 class ColumnService
 {
+    private const FALLBACK_COLUMN_TITLE = 'Бэклог';
+
     public function createColumn(Board $board, array $data): Column
     {
         $maxPosition = $board->columns()->max('position') ?? -1;
@@ -29,12 +32,24 @@ class ColumnService
     {
         $columnId = $column->id;
         $boardId = $column->board_id;
+        $destinationColumn = null;
 
-        DB::transaction(function () use ($column) {
+        DB::transaction(function () use ($column, &$destinationColumn) {
             $board = $column->board;
             $deletedPosition = $column->position;
+            $destinationColumn = $board->columns()
+                ->where('id', '!=', $column->id)
+                ->orderBy('position')
+                ->first();
 
-            $column->tasks()->delete();
+            if ($destinationColumn === null) {
+                $destinationColumn = $board->columns()->create([
+                    'title' => self::FALLBACK_COLUMN_TITLE,
+                    'position' => ($board->columns()->max('position') ?? -1) + 1,
+                ]);
+            }
+
+            $this->moveTasksToColumn($column, $destinationColumn);
             $column->delete();
 
             $board->columns()
@@ -51,6 +66,28 @@ class ColumnService
             'columnId' => $columnId,
             'boardId' => $boardId,
             'columnIds' => $columnIds,
+            'destinationColumn' => $destinationColumn?->fresh([
+                'tasks' => fn ($query) => $query->orderBy('position'),
+                'tasks.assignee:id,name',
+                'tasks.creator:id,name',
+                'tasks.comments' => fn ($query) => $query->latest(),
+                'tasks.comments.author:id,name',
+            ]),
         ];
+    }
+
+    private function moveTasksToColumn(Column $sourceColumn, Column $destinationColumn): void
+    {
+        $nextPosition = (int) (Task::where('column_id', $destinationColumn->id)->max('position') ?? -1) + 1;
+
+        $sourceColumn->tasks()
+            ->orderBy('position')
+            ->get()
+            ->each(function (Task $task) use ($destinationColumn, &$nextPosition) {
+                $task->update([
+                    'column_id' => $destinationColumn->id,
+                    'position' => $nextPosition++,
+                ]);
+            });
     }
 }

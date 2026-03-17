@@ -7,7 +7,18 @@ import tasksRoute from '@/routes/tasks';
 import { useBoardStore } from '@/stores/use-board-store';
 import { BoardData, Task } from '@/types';
 
-import { getColumnDndId, getTaskDndId, parseDndId } from '../utils/dndUtils';
+import {
+    getColumnDndId,
+    getTaskDndId,
+    isTaskSlotDndId,
+    parseDndId,
+    parseTaskSlotDndId,
+} from '../utils/dndUtils';
+
+type TaskDropPreview = {
+    columnId: number;
+    index: number;
+};
 
 export function useKanbanDnd(initialBoard: BoardData) {
     const { columns, setBoard, updateColumns, updateColumnOrder } =
@@ -15,15 +26,115 @@ export function useKanbanDnd(initialBoard: BoardData) {
 
     const [activeTask, setActiveTask] = useState<Task | null>(null);
     const [activeColumnId, setActiveColumnId] = useState<number | null>(null);
+    const [activeTaskOriginColumnId, setActiveTaskOriginColumnId] = useState<
+        number | null
+    >(null);
+    const [taskDropPreview, setTaskDropPreview] =
+        useState<TaskDropPreview | null>(null);
+
+    const findColumnByTaskId = (taskId: number) =>
+        columns.find((column) => column.tasks.some((task) => task.id === taskId));
+
+    const findColumnByDropTarget = (targetId: string) =>
+        (isTaskSlotDndId(targetId)
+            ? columns.find(
+                  (column) => column.id === parseTaskSlotDndId(targetId).columnId,
+              )
+            : null) ||
+        columns.find((column) => getColumnDndId(column.id) === targetId) ||
+        columns.find((column) =>
+            column.tasks.some((task) => getTaskDndId(task.id) === targetId),
+        );
+
+    const getPreviewIndex = ({
+        taskId,
+        destinationColumnId,
+        targetId,
+        active,
+        over,
+        deltaY,
+    }: {
+        taskId: number;
+        destinationColumnId: number;
+        targetId: string;
+        active?: DragOverEvent['active'];
+        over?: DragOverEvent['over'];
+        deltaY?: number;
+    }) => {
+        const destinationColumn = columns.find(
+            (column) => column.id === destinationColumnId,
+        );
+        if (!destinationColumn) {
+            return 0;
+        }
+
+        const visibleTasks = destinationColumn.tasks.filter(
+            (task) => task.id !== taskId,
+        );
+
+        if (isTaskSlotDndId(targetId)) {
+            return parseTaskSlotDndId(targetId).index;
+        }
+
+        if (getColumnDndId(destinationColumn.id) === targetId) {
+            return visibleTasks.length;
+        }
+
+        const overSortable = over?.data.current?.sortable as
+            | { index?: number }
+            | undefined;
+        const sortableIndex = overSortable?.index;
+        const overIndex =
+            typeof sortableIndex === 'number'
+                ? sortableIndex
+                : visibleTasks.findIndex(
+                      (task) => getTaskDndId(task.id) === targetId,
+                  );
+
+        if (overIndex === -1) {
+            return visibleTasks.length;
+        }
+
+        const translatedTop =
+            active?.rect.current.translated?.top ??
+            (active?.rect.current.initial?.top !== undefined &&
+            deltaY !== undefined
+                ? active.rect.current.initial.top + deltaY
+                : undefined);
+        const overMiddleY = over
+            ? over.rect.top + over.rect.height / 2
+            : undefined;
+        const activeCenterY =
+            translatedTop !== undefined
+                ? translatedTop +
+                  ((active?.rect.current.translated?.height ??
+                      active?.rect.current.initial?.height ??
+                      0) /
+                      2)
+                : undefined;
+        const shouldInsertAfter =
+            activeCenterY !== undefined &&
+            overMiddleY !== undefined &&
+            activeCenterY > overMiddleY;
+
+        return overIndex + (shouldInsertAfter ? 1 : 0);
+    };
 
     const handleDragStart = (event: DragStartEvent) => {
         const { type, originalId } = parseDndId(event.active.id as string);
 
         if (type === 'task') {
-            const task = columns
-                .flatMap((c) => c.tasks)
-                .find((t) => t.id === originalId);
+            const task = columns.flatMap((column) => column.tasks).find((t) => t.id === originalId);
+            const sourceColumn = findColumnByTaskId(originalId);
+
             setActiveTask(task || null);
+            setActiveTaskOriginColumnId(sourceColumn?.id ?? null);
+            if (sourceColumn && task) {
+                setTaskDropPreview({
+                    columnId: sourceColumn.id,
+                    index: sourceColumn.tasks.findIndex((item) => item.id === task.id),
+                });
+            }
         } else if (type === 'column') {
             setActiveColumnId(originalId);
         }
@@ -40,41 +151,22 @@ export function useKanbanDnd(initialBoard: BoardData) {
         const { type: activeType } = parseDndId(activeId);
         if (activeType !== 'task') return;
 
-        const activeCol = columns.find((c) =>
-            c.tasks.some((t) => getTaskDndId(t.id) === activeId),
-        );
+        const activeCol = findColumnByTaskId(activeTask.id);
+        const overCol = findColumnByDropTarget(overId);
 
-        const overCol =
-            columns.find((c) => getColumnDndId(c.id) === overId) ||
-            columns.find((c) =>
-                c.tasks.some((t) => getTaskDndId(t.id) === overId),
-            );
+        if (!activeCol || !overCol) return;
 
-        if (!activeCol || !overCol || activeCol.id === overCol.id) return;
-
-        updateColumns(
-            columns.map((col) => {
-                if (col.id === activeCol.id) {
-                    return {
-                        ...col,
-                        tasks: col.tasks.filter(
-                            (t) => getTaskDndId(t.id) !== activeId,
-                        ),
-                    };
-                }
-                if (col.id === overCol.id) {
-                    const overIndex = col.tasks.findIndex(
-                        (t) => getTaskDndId(t.id) === overId,
-                    );
-                    const newIndex =
-                        overIndex === -1 ? col.tasks.length : overIndex;
-                    const newTasks = [...col.tasks];
-                    newTasks.splice(newIndex, 0, activeTask!);
-                    return { ...col, tasks: newTasks };
-                }
-                return col;
+        setTaskDropPreview({
+            columnId: overCol.id,
+            index: getPreviewIndex({
+                taskId: activeTask.id,
+                destinationColumnId: overCol.id,
+                targetId: overId,
+                active,
+                over,
+                deltaY: event.delta.y,
             }),
-        );
+        });
     };
 
     const handleDragEnd = (event: DragEndEvent) => {
@@ -98,41 +190,91 @@ export function useKanbanDnd(initialBoard: BoardData) {
     };
 
     const handleTaskDragEnd = (taskId: number, overId: string) => {
-        const overCol =
-            columns.find((c) => getColumnDndId(c.id) === overId) ||
-            columns.find((c) =>
-                c.tasks.some((t) => getTaskDndId(t.id) === overId),
+        if (!activeTask || activeTaskOriginColumnId === null) return;
+
+        const sourceColumn = columns.find(
+            (column) => column.id === activeTaskOriginColumnId,
+        );
+        const destinationColumn =
+            columns.find((column) => column.id === taskDropPreview?.columnId) ??
+            findColumnByDropTarget(overId);
+
+        if (!sourceColumn || !destinationColumn) return;
+
+        const destinationTasks = destinationColumn.tasks.filter(
+            (task) => task.id !== taskId,
+        );
+        const previewIndex =
+            taskDropPreview?.columnId === destinationColumn.id
+                ? taskDropPreview.index
+                : getPreviewIndex({
+                      taskId,
+                      destinationColumnId: destinationColumn.id,
+                      targetId: overId,
+                  });
+        const insertIndex = Math.max(
+            0,
+            Math.min(previewIndex, destinationTasks.length),
+        );
+        const movedTask = { ...activeTask, column_id: destinationColumn.id };
+
+        if (sourceColumn.id === destinationColumn.id) {
+            const reorderedTasks = arrayMove(
+                sourceColumn.tasks,
+                sourceColumn.tasks.findIndex((task) => task.id === taskId),
+                insertIndex,
             );
 
-        if (!overCol) return;
+            updateColumns(
+                columns.map((column) =>
+                    column.id === sourceColumn.id
+                        ? { ...column, tasks: reorderedTasks }
+                        : column,
+                ),
+            );
 
-        const tasksInCol = overCol.tasks;
-        const oldIndex = tasksInCol.findIndex(
-            (t) => getTaskDndId(t.id) === `task-${taskId}`,
-        );
-        const newIndex = tasksInCol.findIndex(
-            (t) => getTaskDndId(t.id) === overId,
-        );
+            router.patch(
+                tasksRoute.move(taskId).url,
+                {
+                    column_id: destinationColumn.id,
+                    task_ids: reorderedTasks.map((task) => task.id),
+                },
+                {
+                    preserveScroll: true,
+                    onSuccess: (page) => setBoard(page.props.board as BoardData),
+                    onError: () => setBoard(initialBoard),
+                },
+            );
 
-        const reorderedTasks = arrayMove(
-            tasksInCol,
-            oldIndex,
-            newIndex === -1 ? tasksInCol.length : newIndex,
-        );
+            return;
+        }
 
-        // optimistic update
+        const sourceTasks = sourceColumn.tasks.filter((task) => task.id !== taskId);
+        const reorderedDestinationTasks = [...destinationTasks];
+        reorderedDestinationTasks.splice(insertIndex, 0, movedTask);
+
         updateColumns(
-            columns.map((c) =>
-                c.id === overCol.id ? { ...c, tasks: reorderedTasks } : c,
-            ),
+            columns.map((column) => {
+                if (column.id === sourceColumn.id) {
+                    return { ...column, tasks: sourceTasks };
+                }
+
+                if (column.id === destinationColumn.id) {
+                    return {
+                        ...column,
+                        tasks: reorderedDestinationTasks,
+                    };
+                }
+
+                return column;
+            }),
         );
 
-        // server sync
         router.patch(
             tasksRoute.move(taskId).url,
             {
-                column_id: overCol.id,
-                task_ids: reorderedTasks.map((t) => t.id),
+                column_id: destinationColumn.id,
+                task_ids: reorderedDestinationTasks.map((task) => task.id),
             },
             {
                 preserveScroll: true,
@@ -167,11 +309,14 @@ export function useKanbanDnd(initialBoard: BoardData) {
     const cleanup = () => {
         setActiveTask(null);
         setActiveColumnId(null);
+        setActiveTaskOriginColumnId(null);
+        setTaskDropPreview(null);
     };
 
     return {
         activeTask,
         activeColumnId,
+        taskDropPreview,
         handleDragStart,
         handleDragOver,
         handleDragEnd,

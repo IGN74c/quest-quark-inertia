@@ -37,7 +37,11 @@ interface BoardState {
     updateColumnOrder: (columnIds: number[]) => void;
     addColumn: (column: ColumnWithTasks) => void;
     updateColumn: (column: ColumnWithTasks) => void;
-    removeColumn: (columnId: number, columnIds?: number[]) => void;
+    removeColumn: (
+        columnId: number,
+        columnIds?: number[],
+        destinationColumn?: ColumnWithTasks,
+    ) => void;
     addTask: (task: Task) => void;
     applyTaskOrder: (columnId: number, taskIds: number[]) => void;
     updateTask: (task: Task) => void;
@@ -117,11 +121,31 @@ export const useBoardStore = create<BoardState>((set) => ({
                 )
                 .sort((a, b) => a.position - b.position),
         })),
-    removeColumn: (columnId, columnIds) =>
+    removeColumn: (columnId, columnIds, destinationColumn) =>
         set((state) => {
-            const nextColumns = state.columns.filter(
-                (col) => col.id !== columnId,
-            );
+            const nextColumns = state.columns
+                .filter((col) => col.id !== columnId)
+                .map((col) =>
+                    destinationColumn && col.id === destinationColumn.id
+                        ? {
+                              ...col,
+                              ...destinationColumn,
+                              tasks: sortTasksByPosition(
+                                  destinationColumn.tasks ?? col.tasks,
+                              ),
+                          }
+                        : col,
+                );
+
+            if (
+                destinationColumn &&
+                !nextColumns.some((col) => col.id === destinationColumn.id)
+            ) {
+                nextColumns.push({
+                    ...destinationColumn,
+                    tasks: sortTasksByPosition(destinationColumn.tasks ?? []),
+                });
+            }
 
             if (columnIds && columnIds.length > 0) {
                 const columnMap = new Map(

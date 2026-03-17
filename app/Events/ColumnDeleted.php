@@ -2,6 +2,7 @@
 
 namespace App\Events;
 
+use App\Models\Column;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
@@ -15,12 +16,19 @@ class ColumnDeleted implements ShouldBroadcast
     public int $columnId;
     public int $boardId;
     public array $columnIds;
+    public ?Column $destinationColumn;
 
-    public function __construct(int $columnId, int $boardId, array $columnIds = [])
+    public function __construct(
+        int $columnId,
+        int $boardId,
+        array $columnIds = [],
+        ?Column $destinationColumn = null,
+    )
     {
         $this->columnId = $columnId;
         $this->boardId = $boardId;
         $this->columnIds = $columnIds;
+        $this->destinationColumn = $destinationColumn;
     }
 
     public function broadcastOn(): array
@@ -40,6 +48,7 @@ class ColumnDeleted implements ShouldBroadcast
         return [
             'column_id' => $this->columnId,
             'column_ids' => $this->columnIds,
+            'destination_column' => $this->destinationColumn?->toArray(),
         ];
     }
 }

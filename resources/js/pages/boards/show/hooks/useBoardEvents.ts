@@ -29,6 +29,7 @@ type ColumnPayload = {
 type ColumnDeletedPayload = {
     column_id: number;
     column_ids?: number[];
+    destination_column?: ColumnWithTasks;
 };
 
 type ColumnMovedPayload = {
@@ -128,8 +129,8 @@ export function useBoardEvents(boardId: number) {
     useEcho<ColumnDeletedPayload>(
         channel,
         '.column.deleted',
-        ({ column_id, column_ids }) => {
-            removeColumn(column_id, column_ids);
+        ({ column_id, column_ids, destination_column }) => {
+            removeColumn(column_id, column_ids, destination_column);
         },
         [boardId],
         'private',
