@@ -1,263 +1,238 @@
-## Схемы таблиц
-```php
-Schema::create('users', function (Blueprint $table) {
-    $table->id();
-    $table->string('name');
-    $table->string('email')->unique();
-    $table->string('password');
-    $table->rememberToken();
-    $table->timestamps();
-});
-Schema::create('boards', function (Blueprint $table) {
-    $table->id();
-    $table->string('title');
-    $table->foreignIdFor(User::class);
-    $table->timestamps();
-});
-Schema::create('board_users', function (Blueprint $table) {
-    $table->id();
-    $table->foreignIdFor(Board::class);
-    $table->foreignIdFor(User::class);
-    $table->enum('role', ['admin', 'editor', 'viewer']);
-    $table->timestamps();
-});
-Schema::create('columns', function (Blueprint $table) {
-    $table->id();
-    $table->foreignIdFor(Board::class);
-    $table->string('title');
-    $table->integer('position');
-    $table->timestamps();
-});
-Schema::create('tasks', function (Blueprint $table) {
-    $table->id();
-    $table->foreignIdFor(Column::class)->constrained();
-    $table->foreignIdFor(User::class, 'creator_id')->constrained();
-    $table->foreignIdFor(User::class, 'assignee_id')->nullable()->constrained();
-    $table->string('title');
-    $table->text('description');
-    $table->integer('position');
-    $table->timestamps();
-});
+# Quest Quark
+
+Quest Quark это минималистичное kanban-приложение для личного и командного управления задачами. Проект построен на Laravel + Inertia.js + React и делает упор на чистый интерфейс, быстрые действия и обновления досок в реальном времени.
+
+## Возможности
+
+- kanban-доски с собственными колонками и упорядоченными задачами
+- drag and drop для колонок и задач
+- редактирование задач с описанием, исполнителем и комментариями
+- командная работа с приглашениями на доску и ролями участников
+- синхронизация в реальном времени через Laravel Reverb
+- аутентификация и настройки профиля через Laravel Fortify
+
+## Стек технологий
+
+### Backend
+
+- PHP 8.2+
+- Laravel 12
+- PostgreSQL
+- Laravel Fortify
+- Laravel Reverb
+- Pest
+
+### Frontend
+
+- React 19
+- TypeScript
+- Inertia.js
+- Vite
+- Tailwind CSS 4
+- shadcn/ui
+- dnd-kit
+- Zustand
+- Tiptap
+
+## Структура проекта
+
+```text
+app/
+  Http/Controllers/    HTTP-контроллеры
+  Http/Requests/       валидация и правила запросов
+  Models/              Eloquent-модели
+  Services/            бизнес-логика досок, колонок и задач
+  Events/              события для обновлений в реальном времени
+
+resources/
+  js/
+    pages/             страницы Inertia
+    components/        общие UI-компоненты
+    layouts/           layout-компоненты приложения
+    stores/            состояние Zustand
+  css/                 глобальные стили
+
+routes/
+  web.php              веб-маршруты
+  settings.php         маршруты настроек профиля и аккаунта
+
+database/
+  migrations/          схема базы данных
+  seeders/             сидеры
+
+tests/
+  Feature/             feature-тесты
+  Unit/                unit-тесты
 ```
-## Основные компоненты проекта (шаблон проекта) inertia js, shadcn ui
-```ts
-//app-layout.tsx
-import AppLayoutTemplate from '@/layouts/app/app-sidebar-layout';
-import { type BreadcrumbItem } from '@/types';
-import { type ReactNode } from 'react';
-interface AppLayoutProps {
-    children: ReactNode;
-    breadcrumbs?: BreadcrumbItem[];
-}
-export default ({ children, breadcrumbs, ...props }: AppLayoutProps) => (
-    <AppLayoutTemplate breadcrumbs={breadcrumbs} {...props}>
-        {children}
-    </AppLayoutTemplate>
-);
-// @types
-import { InertiaLinkProps } from '@inertiajs/react';
-import { LucideIcon } from 'lucide-react';
 
-export interface User {
-    id: number;
-    name: string;
-    email: string;
-    avatar?: string;
-    email_verified_at?: string;
-    created_at: string;
-    updated_at: string;
-    pivot?: BoardUserPivot;
-    [key: string]: unknown;
-}
+## Требования
 
-export interface Board {
-    id: number;
-    title: string;
-    user_id: number;
-    created_at: string;
-    updated_at: string;
-}
+- PHP 8.2 или новее
+- Composer
+- Node.js 20+
+- npm
+- PostgreSQL 16+ или Docker
 
-export interface Column {
-    id: number;
-    board_id: number;
-    title: string;
-    position: number;
-    created_at: string;
-    updated_at: string;
-}
+## Переменные окружения
 
-export interface Task {
-    id: number;
-    column_id: number;
-    creator_id: number;
-    assignee_id: number | null;
-    title: string;
-    description: string;
-    position: number;
-    created_at: string;
-    updated_at: string;
-    creator?: User;
-    assignee?: User | null;
-}
+Проект использует PostgreSQL и по умолчанию настроен на Laravel Reverb.
 
-export interface BoardUserPivot {
-    id: number;
-    board_id: number;
-    user_id: number;
-    role: 'admin' | 'editor' | 'viewer';
-    created_at: string;
-    updated_at: string;
-}
+Основные переменные из `.env`:
 
-export interface ColumnWithTasks extends Column {
-    tasks: Task[];
-}
+```env
+APP_URL=http://localhost
 
-export interface BoardData extends Board {
-    columns: ColumnWithTasks[];
-    users?: User[];
-}
+DB_CONNECTION=pgsql
+DB_HOST=127.0.0.1
+DB_PORT=5432
+DB_DATABASE=laravel
+DB_USERNAME=laravel
+DB_PASSWORD=laravel
 
-export interface Auth {
-    user: User;
-    boards: Board[];
-}
+BROADCAST_CONNECTION=reverb
+QUEUE_CONNECTION=database
+SESSION_DRIVER=database
+CACHE_STORE=database
 
-export interface BreadcrumbItem {
-    title: string;
-    href: string;
-}
-
-export interface NavGroup {
-    title: string;
-    items: NavItem[];
-}
-
-export interface NavItem {
-    title: string;
-    href: NonNullable<InertiaLinkProps['href']>;
-    icon?: LucideIcon | null;
-    isActive?: boolean;
-}
-
-export interface SharedData {
-    name: string;
-    quote: {
-        message: string;
-        author: string;
-    };
-    auth: Auth;
-    sidebarOpen: boolean;
-    [key: string]: unknown;
-}
-
+REVERB_HOST=localhost
+REVERB_PORT=8080
+REVERB_SCHEME=http
 ```
-## Зависимости
-```json
-// package.json
-"devDependencies": {
-    "@eslint/js": "^9.19.0",
-    "@laravel/vite-plugin-wayfinder": "^0.1.3",
-    "@types/node": "^22.13.5",
-    "babel-plugin-react-compiler": "^1.0.0",
-    "eslint": "^9.17.0",
-    "eslint-config-prettier": "^10.0.1",
-    "eslint-plugin-react": "^7.37.3",
-    "eslint-plugin-react-hooks": "^7.0.0",
-    "prettier": "^3.4.2",
-    "prettier-plugin-organize-imports": "^4.1.0",
-    "prettier-plugin-tailwindcss": "^0.6.11",
-    "typescript-eslint": "^8.23.0"
-},
-"dependencies": {
-    "@dnd-kit/core": "^6.3.1",
-    "@dnd-kit/modifiers": "^9.0.0",
-    "@dnd-kit/sortable": "^10.0.0",
-    "@headlessui/react": "^2.2.0",
-    "@inertiajs/react": "^2.1.4",
-    "@radix-ui/react-avatar": "^1.1.3",
-    "@radix-ui/react-checkbox": "^1.1.4",
-    "@radix-ui/react-collapsible": "^1.1.3",
-    "@radix-ui/react-dialog": "^1.1.6",
-    "@radix-ui/react-dropdown-menu": "^2.1.6",
-    "@radix-ui/react-label": "^2.1.2",
-    "@radix-ui/react-navigation-menu": "^1.2.5",
-    "@radix-ui/react-progress": "^1.1.8",
-    "@radix-ui/react-select": "^2.1.6",
-    "@radix-ui/react-separator": "^1.1.2",
-    "@radix-ui/react-slot": "^1.2.3",
-    "@radix-ui/react-toggle": "^1.1.2",
-    "@radix-ui/react-toggle-group": "^1.1.2",
-    "@radix-ui/react-tooltip": "^1.1.8",
-    "@tailwindcss/vite": "^4.1.11",
-    "@types/react": "^19.2.0",
-    "@types/react-dom": "^19.2.0",
-    "@vitejs/plugin-react": "^5.0.0",
-    "class-variance-authority": "^0.7.1",
-    "clsx": "^2.1.1",
-    "concurrently": "^9.0.1",
-    "globals": "^15.14.0",
-    "input-otp": "^1.4.2",
-    "laravel-vite-plugin": "^2.0",
-    "lucide-react": "^0.475.0",
-    "react": "^19.2.0",
-    "react-dom": "^19.2.0",
-    "tailwind-merge": "^3.0.1",
-    "tailwindcss": "^4.0.0",
-    "tw-animate-css": "^1.4.0",
-    "typescript": "^5.7.2",
-    "vite": "^7.0.4",
-    "zustand": "^5.0.9"
-},
-// composer.json
-"require": {
-    "php": "^8.2",
-    "inertiajs/inertia-laravel": "^2.0",
-    "laravel/fortify": "^1.30",
-    "laravel/framework": "^12.0",
-    "laravel/tinker": "^2.10.1",
-    "laravel/wayfinder": "^0.1.9"
-},
-"require-dev": {
-    "fakerphp/faker": "^1.23",
-    "laravel/pail": "^1.2.2",
-    "laravel/pint": "^1.24",
-    "laravel/sail": "^1.41",
-    "mockery/mockery": "^1.6",
-    "nunomaduro/collision": "^8.6",
-    "pestphp/pest": "^4.2",
-    "pestphp/pest-plugin-laravel": "^4.0"
-}
+
+## Локальный запуск
+
+### 1. Установить зависимости
+
+```bash
+composer install
+npm install
 ```
-## Маршруты
-```php
-Route::get('/', function () {
-    return Inertia::render('welcome', [
-        'canRegister' => Features::enabled(Features::registration()),
-    ]);
-})->name('home');
 
-Route::middleware(['auth'])->group(function () {
-    Route::get('dashboard', [BoardController::class, 'index'])->name('dashboard');
+### 2. Создать файл окружения
 
-    Route::get('/boards/{board}', [BoardController::class, 'show'])->name('boards.show');
-    Route::post('/boards', [BoardController::class, 'store'])->name('boards.store');
-    Route::patch('/boards/{board}', [BoardController::class, 'update'])->name('boards.update');
-    Route::delete('/boards/{board}', [BoardController::class, 'destroy'])->name('boards.destroy');
-    Route::post('/boards/{board}/invite', [BoardController::class, 'invite'])->name('boards.invite');
-
-    Route::patch('/boards/{board}/users/{user}', [BoardController::class, 'updateUserRole'])->name('boards.users.update');
-    Route::delete('/boards/{board}/users/{user}', [BoardController::class, 'removeUser'])->name('boards.users.remove');
-
-    Route::post('/boards/{board}/columns', [ColumnController::class, 'store'])->name('columns.store');
-    Route::delete('/columns/{column}', [ColumnController::class, 'destroy'])->name('columns.destroy');
-    Route::patch('/columns/{column}', [ColumnController::class, 'update'])->name('columns.update');
-    Route::patch('/columns/{column}/move', [TaskMovementController::class, 'moveColumn'])->name('columns.move');
-
-    Route::post('/columns/{column}/tasks', [TaskController::class, 'store'])->name('tasks.store');
-    Route::patch('/tasks/{task}', [TaskController::class, 'update'])->name('tasks.update');
-    Route::delete('/tasks/{task}', [TaskController::class, 'destroy'])->name('tasks.destroy');
-    Route::patch('/tasks/{task}/move', [TaskMovementController::class, 'move'])->name('tasks.move');
-});
+```bash
+cp .env.example .env
+php artisan key:generate
 ```
+
+### 3. Запустить PostgreSQL
+
+Если PostgreSQL не установлен локально, можно поднять только базу через Docker:
+
+```bash
+docker compose -f docker-compose.dev.yml up -d
+```
+
+### 4. Выполнить миграции
+
+```bash
+php artisan migrate
+```
+
+### 5. Запустить приложение
+
+В одном терминале:
+
+```bash
+composer run dev
+```
+
+Во втором терминале запустить Reverb:
+
+```bash
+php artisan reverb:start
+```
+
+После этого приложение будет доступно по адресу `http://127.0.0.1:8000` или `http://localhost:8000`.
+
+## Быстрая установка
+
+Если нужен базовый сценарий установки одной командой:
+
+```bash
+composer run setup
+```
+
+Эта команда устанавливает PHP- и JS-зависимости, создаёт `.env`, генерирует ключ приложения, запускает миграции и собирает фронтенд-ассеты.
+
+## Основные команды
+
+### Backend
+
+```bash
+php artisan serve
+php artisan migrate
+php artisan queue:listen --tries=1
+php artisan reverb:start
+php artisan test
+```
+
+### Frontend
+
+```bash
+npm run dev
+npm run build
+npm run build:ssr
+npm run lint
+npm run types
+npm run format
+```
+
+### Composer-скрипты
+
+```bash
+composer run setup
+composer run dev
+composer run dev:ssr
+composer run test
+```
+
+## Docker
+
+В репозитории есть две Docker-конфигурации:
+
+- `docker-compose.dev.yml` для быстрого запуска PostgreSQL в разработке
+- `docker-compose.yml` для запуска приложения, Nginx и PostgreSQL вместе
+
+Запуск полного стека:
+
+```bash
+docker compose up --build
+```
+
+Перед использованием полной конфигурации убедись, что данные подключения к базе в `docker-compose.yml` и `.env` совпадают с твоим окружением.
+
+## Основные маршруты
+
+- `/` главная страница
+- `/dashboard` панель со списком досок
+- `/boards/{board}` страница доски
+- `/settings/profile` настройки профиля
+- `/settings/password` настройки пароля
+- `/settings/appearance` настройки внешнего вида
+
+## Тестирование
+
+Запуск тестов:
+
+```bash
+composer run test
+```
+
+В проекте уже есть feature-тесты для:
+
+- аутентификации
+- доступа к dashboard
+- настроек профиля и пароля
+- двухфакторной аутентификации
+- удаления колонок
+
+## Примечания
+
+- Приложение использует серверную аутентификацию Laravel и фронтенд на Inertia React.
+- Изменения в досках, колонках и задачах транслируются через события в реальном времени.
+- Для части фоновых процессов нужен работающий `queue:listen`, поэтому в разработке его стоит держать запущенным.
+
+## Лицензия
+
+Проект распространяется по лицензии MIT.
