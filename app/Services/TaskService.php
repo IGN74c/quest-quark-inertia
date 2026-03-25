@@ -25,8 +25,8 @@ class TaskService
             ]);
         });
 
-        $taskIds = Task::where('column_id', $column->id)
-            ->orderBy('position')
+        $taskIds = Task::inColumn($column->id)
+            ->ordered()
             ->pluck('id')
             ->all();
 
@@ -57,13 +57,13 @@ class TaskService
         DB::transaction(function () use ($task, $columnId, $oldPosition) {
             $task->delete();
 
-            Task::where('column_id', $columnId)
+            Task::inColumn($columnId)
                 ->where('position', '>', $oldPosition)
                 ->decrement('position');
         });
 
-        $taskIds = Task::where('column_id', $columnId)
-            ->orderBy('position')
+        $taskIds = Task::inColumn($columnId)
+            ->ordered()
             ->pluck('id')
             ->all();
 

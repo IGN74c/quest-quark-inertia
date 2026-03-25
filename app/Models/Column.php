@@ -2,14 +2,16 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Attributes\Scope;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
+#[Fillable(['board_id', 'title', 'position'])]
 class Column extends Model
 {
-    protected $fillable = ['board_id', 'title', 'position'];
-
     public function board(): BelongsTo
     {
         return $this->belongsTo(Board::class);
@@ -18,5 +20,17 @@ class Column extends Model
     public function tasks(): HasMany
     {
         return $this->hasMany(Task::class)->orderBy('position');
+    }
+
+    #[Scope]
+    protected function inBoard(Builder $query, int $boardId): void
+    {
+        $query->where('board_id', $boardId);
+    }
+
+    #[Scope]
+    protected function ordered(Builder $query): void
+    {
+        $query->orderBy('position');
     }
 }

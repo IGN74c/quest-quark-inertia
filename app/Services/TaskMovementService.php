@@ -21,13 +21,13 @@ class TaskMovementService
 
         $task->refresh();
 
-        $fromTaskIds = Task::where('column_id', $fromColumnId)
-            ->orderBy('position')
+        $fromTaskIds = Task::inColumn($fromColumnId)
+            ->ordered()
             ->pluck('id')
             ->all();
 
-        $toTaskIds = Task::where('column_id', $toColumnId)
-            ->orderBy('position')
+        $toTaskIds = Task::inColumn($toColumnId)
+            ->ordered()
             ->pluck('id')
             ->all();
 
@@ -59,8 +59,8 @@ class TaskMovementService
             ]);
         });
 
-        $columnIds = Column::where('board_id', $boardId)
-            ->orderBy('position')
+        $columnIds = Column::inBoard($boardId)
+            ->ordered()
             ->pluck('id')
             ->all();
 

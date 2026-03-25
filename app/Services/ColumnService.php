@@ -57,8 +57,8 @@ class ColumnService
                 ->decrement('position');
         });
 
-        $columnIds = Column::where('board_id', $boardId)
-            ->orderBy('position')
+        $columnIds = Column::inBoard($boardId)
+            ->ordered()
             ->pluck('id')
             ->all();
 
@@ -67,7 +67,7 @@ class ColumnService
             'boardId' => $boardId,
             'columnIds' => $columnIds,
             'destinationColumn' => $destinationColumn?->fresh([
-                'tasks' => fn ($query) => $query->orderBy('position'),
+                'tasks' => fn ($query) => $query->ordered(),
                 'tasks.assignee:id,name',
                 'tasks.creator:id,name',
                 'tasks.comments' => fn ($query) => $query->latest(),
@@ -78,10 +78,10 @@ class ColumnService
 
     private function moveTasksToColumn(Column $sourceColumn, Column $destinationColumn): void
     {
-        $nextPosition = (int) (Task::where('column_id', $destinationColumn->id)->max('position') ?? -1) + 1;
+        $nextPosition = (int) (Task::inColumn($destinationColumn->id)->max('position') ?? -1) + 1;
 
         $sourceColumn->tasks()
-            ->orderBy('position')
+            ->ordered()
             ->get()
             ->each(function (Task $task) use ($destinationColumn, &$nextPosition) {
                 $task->update([

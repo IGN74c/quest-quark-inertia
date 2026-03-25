@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Http\Controllers;
 
 use App\Http\Requests\BoardInviteRequest;
@@ -32,12 +33,8 @@ class BoardController extends Controller
         return Inertia::render('boards/show/index', [
             'board' => $board->load([
                 'users',
-                'columns' => function ($query) {
-                    $query->orderBy('position');
-                },
-                'columns.tasks' => function ($query) {
-                    $query->orderBy('position');
-                },
+                'columns' => fn ($query) => $query->ordered(),
+                'columns.tasks' => fn ($query) => $query->ordered(),
                 'columns.tasks.assignee:id,name',
                 'columns.tasks.comments' => function ($query) {
                     $query->latest();

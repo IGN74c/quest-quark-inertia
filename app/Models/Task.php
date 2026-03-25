@@ -1,34 +1,25 @@
 <?php
+
 namespace App\Models;
 
+use App\Models\Concerns\SortsByPosition;
+use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Spatie\EloquentSortable\SortableTrait;
 
+#[Fillable(['column_id', 'creator_id', 'assignee_id', 'title', 'description', 'position'])]
 class Task extends Model
 {
-    use HasFactory, SortableTrait;
+    use HasFactory, SortsByPosition;
 
-    public $sortable = [
-        'order_column_name' => 'position',
-        'sort_when_creating' => true,
-    ];
-
-    public function buildSortQuery()
+    public function buildSortQuery(): Builder
     {
-        return static::query()->where('column_id', $this->column_id);
+        return static::query()->inColumn($this->column_id);
     }
-
-    protected $fillable = [
-        'column_id',
-        'creator_id',
-        'assignee_id',
-        'title',
-        'description',
-        'position'
-    ];
 
     public function column(): BelongsTo
     {
@@ -48,5 +39,17 @@ class Task extends Model
     public function comments(): HasMany
     {
         return $this->hasMany(TaskComment::class)->latest();
+    }
+
+    #[Scope]
+    protected function inColumn(Builder $query, int $columnId): void
+    {
+        $query->where('column_id', $columnId);
+    }
+
+    #[Scope]
+    protected function ordered(Builder $query): void
+    {
+        $query->orderBy('position');
     }
 }
